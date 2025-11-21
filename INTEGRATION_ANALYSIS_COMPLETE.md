@@ -498,6 +498,7 @@ GET /api/get-pay-dates
 ### Option 1: Extend Existing API (Recommended)
 
 **Approach:**
+
 - Create new `/api/mobile/*` routes alongside existing routes
 - Extend `time_cards` table with GPS columns
 - Add `source` field to distinguish mobile vs job clock

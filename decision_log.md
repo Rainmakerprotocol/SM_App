@@ -3,12 +3,15 @@
 Use this log to record significant technical, product, or process decisions made during the build. Each entry should include enough detail for future contributors to understand the context, rationale, and impact.
 
 ## Entry Template
+
 | ID | Date | Phase / Section | Decision | Rationale | Impact / Follow-ups | Owner |
 |----|------|-----------------|----------|-----------|----------------------|-------|
 | DL-001 | 2025-11-20 | Phase 1-1 / 1.1 Choose Tech Stack | Adopt Flutter 3.x with Dart + Riverpod state mgmt | Plan already optimized for Flutter; strong offline plugins (Drift, geolocator), single codebase, existing team familiarity | Initialize Flutter repo, document tooling versions, align onboarding docs | E. Therrien |
 | DL-002 | 2025-11-21 | Phase 1-1 / 2.1 Offline-First Strategy | Use Drift + sqlite3_flutter_libs for local storage with encrypted columns via future sqlite extensions | Drift gives typed schema migrations + background isolates needed for punch queue; sqlite3_flutter_libs avoids platform SQLite drift; column-level obfuscation handled via app-layer AES until native FFI encryption plugin approved | Scaffold Drift database, add DAO/repository layer, update phased_plan + backend wiring to reference schema | Copilot |
+| DL-003 | 2025-11-22 | Phase 1-1 / 2.2 Sync Engine Blueprint | Adopt jittered exponential backoff SyncManager with server-wins conflict policy + duplicate detection | Keeps queue draining offline with deterministic triggers while matching backend expectation that `/api/mobile/punches/batch` returns processed/duplicate/error partitions; limits device churn via five-attempt cap | Implement `SyncManager`, expose DAO helpers, add unit tests, and mirror flow/pseudocode inside `phased_plan.md` + `MOBILE_BACKEND_INTEGRATION_SPEC.md` | Copilot |
 
 ### Guidelines
+
 1. **Create a new ID** for every major decision (format `DL-###`).
 2. **Reference the exact section** of `phased_plan.md` or related specs where the decision applies.
 3. **Capture rationale** (constraints, trade-offs, data points) so future changes can be evaluated quickly.

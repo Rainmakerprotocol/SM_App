@@ -129,7 +129,16 @@ These are the micro-steps developers must complete to properly initialize the pr
 - Add pseudocode or flowchart to `SM_APP_backend_wiring/MOBILE_BACKEND_INTEGRATION_SPEC.md` when sync rules change.
 - **Decision Hook:** Capture final queue architecture + conflict-resolution rules in `decision_log.md` and link to the wiring spec revision.
 
-**Present:** Drift queue helpers now expose `enqueuePayload`, `oldestQueueItems(limit:20)`, and `incrementQueueAttempt` methods, giving the forthcoming `SyncManager` concrete persistence hooks. Conflict resolution + retry policy still need their narrative/diagram update in the integration spec once transport logic lands.
+**Status Checklist (2025-11-22):**
+- [x] Copilot — Implemented `SyncManager` + `PunchSyncTransport` under `field_app_client/lib/offline/sync/`, added `offline_status.dart`, and exposed DAO helpers so queue batches carry attempt counts.
+- [x] Copilot — Wrote unit coverage for retry/backoff logic (`field_app_client/test/offline/sync_manager_test.dart`) and documented triggers/backoff flow in the integration spec + `decision_log` (`DL-003`).
+- [ ] Backend Team — Mirror the exponential backoff + duplicate handling rules in Laravel’s `/api/mobile/punches/batch` controller + logging once route scaffolds begin.
+
+**Past:** Queue accessors existed but no engine consumed them, leaving trigger/backoff decisions undocumented.
+
+**Present:** `SyncManager` now drains queued punches in 25-item batches, reads session/connection state, and enforces server-wins precedence with duplicate detection + five-attempt exponential backoff (5s→10s→20s→40s→5m w/ jitter). `/SM_APP_backend_wiring/MOBILE_BACKEND_INTEGRATION_SPEC.md` contains the mirrored flow diagram, ensuring backend + mobile teams reason about the same retry cadence.
+
+**Future:** Wire triggers to real lifecycle hooks (foreground/background services + manual “Sync now” CTA) and emit analytics for permanently dropped punches before expanding the engine to jobs/timesheets in later phases.
 
 ### **2.3 Authentication Flow**
 - Mirror the existing Laravel JWT flow:

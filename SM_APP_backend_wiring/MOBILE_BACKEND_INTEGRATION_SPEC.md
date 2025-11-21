@@ -146,11 +146,40 @@ Detailed route stubs live in `API_WIRING.md`.
 ---
 
 ## 5. Offline & Sync Rules
-- **Queue storage:** `punches_local` table on device with `synced` + `sync_attempts` flags.
-- **Sync triggers:** app launch, resume, connectivity change, manual button, 5-minute timer.
-- **Conflict resolution:** server wins; client raises dispute if mismatch discovered.
-- **Duplicate handling:** backend rejects same `mobile_uuid`; response still returns HTTP 200 with duplicates array so client can mark local punch as synced.
-- **GPS handling:** backend stores coordinates even when accuracy > 80m but flags record; if GPS missing, `gps_unavailable` set and record flagged for review.
+- **Queue storage:** Drift `sync_queue` rows retain the full punch payload plus attempt counters so the client can batch up to 25 records. `DL-003` locks this architecture through `SyncManager`.
+- **Sync triggers:** foreground resume, manual “Sync now,” network reconnect, login success, and a 5-minute timer all call `SyncManager.trigger()`; background timers simply enqueue the trigger flag so the UI thread can drain the queue when awakened.
+- **Conflict resolution:** Laravel is the source of truth. The mobile app trusts the server response (`processed`, `duplicates`, `errors`) and purges local punches once acknowledged. Validation failures stay server-side (422) with a human dispute created from the app if needed.
+- **Duplicate handling:** `/api/mobile/punches/batch` must treat duplicate `mobile_uuid` values as 200 responses with a populated `duplicates` array. The app removes those queue entries without re-posting them.
+- **Exponential backoff:** Failed batches retry with jittered doubling (5s → 10s → 20s → 40s → 5m) up to five attempts per punch. After the fifth failure the client drops the record locally but emits analytics so QA can reconcile with backend logs.
+- **Transport states:** Unauthorized (401) responses pause sync until the user logs in again. Server/transport faults keep the timer active so the queue drains automatically once connectivity stabilizes.
+- **GPS handling:** Backend should persist all coordinates (even >80m) but flag high-variance readings. If `gps_unavailable` is true the record is still inserted with a “no-fix” marker for later QA review.
+
+### 5.1 Client Pseudocode (mirrors `field_app_client/lib/offline/sync/sync_manager.dart`)
+```
+triggerSync(trigger):
+  if !hasConnectivity: return scheduleRetry()
+  session = readAuthSession()
+  if session == null: return
+
+  batch = queue.fetchPending(limit=25)
+  while batch not empty:
+    response = transport.send(batch, session)
+    delete queue entries marked processed or duplicates
+    for each error in response.errors:
+      if error.code == 'duplicate': delete entry
+      else if attempts >= 5: delete + emit analytics
+      else: increment attempt + scheduleRetry()
+    batch = queue.fetchPending(limit=25)
+
+scheduleRetry():
+  delay = min(currentDelay * 2 + jitter, 5 minutes)
+  Timer(delay, () => triggerSync('periodic'))
+```
+
+### 5.2 Backend Expectations
+- Surface `processed`, `duplicates`, and per-record `errors` with `{ uuid, code, message }` so the mobile app can apply the above flow deterministically.
+- Log every rejected punch with the mobile UUID, employee ID, and reason to match analytics coming from the app.
+- Honor `Authorization: Bearer` headers and return `401` immediately so the app pauses syncing and prompts for login.
 
 ---
 

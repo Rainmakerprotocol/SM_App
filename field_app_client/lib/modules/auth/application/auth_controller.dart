@@ -1,8 +1,9 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 
+import '../../../config/app_config.dart';
+import '../../../core/network/http_client_provider.dart';
 import '../data/auth_metadata_collector.dart';
 import '../data/auth_service.dart';
 import '../data/token_storage.dart';
@@ -27,35 +28,29 @@ final authMetadataCollectorProvider = Provider<AuthMetadataProvider>((ref) {
   );
 });
 
-final httpClientProvider = Provider<http.Client>((ref) {
-  final client = http.Client();
-  ref.onDispose(client.close);
-  return client;
-});
-
-const _useMockAuth = bool.fromEnvironment('USE_MOCK_AUTH', defaultValue: true);
-const _apiBaseUrl = String.fromEnvironment(
-  'SM_API_BASE_URL',
-  defaultValue: 'https://stormmaster.local',
-);
-
 final authServiceProvider = Provider<AuthService>((ref) {
-  if (_useMockAuth) {
+  if (AppConfig.useMockAuth) {
     return MockAuthService();
   }
   return RestAuthService(
     httpClient: ref.watch(httpClientProvider),
-    baseUrl: _apiBaseUrl,
+    baseUrl: AppConfig.apiBaseUrl,
   );
 });
 
-final authControllerProvider =
-    StateNotifierProvider<AuthController, AuthState>((ref) {
-  return AuthController(
-    authService: ref.watch(authServiceProvider),
-    tokenStorage: ref.watch(tokenStorageProvider),
-    metadataCollector: ref.watch(authMetadataCollectorProvider),
-  );
+final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
+  (ref) {
+    return AuthController(
+      authService: ref.watch(authServiceProvider),
+      tokenStorage: ref.watch(tokenStorageProvider),
+      metadataCollector: ref.watch(authMetadataCollectorProvider),
+    );
+  },
+);
+
+final authSessionProvider = Provider<AuthSession?>((ref) {
+  final state = ref.watch(authControllerProvider);
+  return state.session;
 });
 
 class AuthState {
@@ -92,10 +87,10 @@ class AuthState {
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isInitialized: isInitialized ?? this.isInitialized,
       isLoading: isLoading ?? this.isLoading,
-      displayName:
-          clearDisplayName ? null : (displayName ?? this.displayName),
-      errorMessage:
-          clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      displayName: clearDisplayName ? null : (displayName ?? this.displayName),
+      errorMessage: clearErrorMessage
+          ? null
+          : (errorMessage ?? this.errorMessage),
       session: session ?? this.session,
     );
   }
@@ -106,10 +101,10 @@ class AuthController extends StateNotifier<AuthState> {
     required AuthService authService,
     required TokenStorage tokenStorage,
     required AuthMetadataProvider metadataCollector,
-  })  : _authService = authService,
-        _tokenStorage = tokenStorage,
-        _metadataCollector = metadataCollector,
-        super(AuthState.initial()) {
+  }) : _authService = authService,
+       _tokenStorage = tokenStorage,
+       _metadataCollector = metadataCollector,
+       super(AuthState.initial()) {
     _restoreSession();
   }
 

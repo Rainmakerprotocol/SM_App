@@ -1,0 +1,156 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+import 'package:field_app_client/modules/auth/application/auth_controller.dart';
+import 'package:field_app_client/modules/auth/domain/auth_models.dart';
+import 'package:field_app_client/offline/offline_providers.dart';
+import 'package:field_app_client/offline/offline_status.dart';
+import 'package:field_app_client/offline/sync/punch_sync_transport.dart';
+import 'package:field_app_client/offline/sync/sync_manager.dart';
+import 'package:field_app_client/offline/sync/sync_providers.dart';
+
+class _MockQueueDao extends Mock implements SyncQueueDao {}
+
+class _MockPunchSyncTransport extends Mock implements PunchSyncTransport {}
+
+void main() {
+  final session = AuthSession(
+    token: 'token',
+    expiresAt: DateTime(2099, 1, 1),
+    displayName: 'Crew Member',
+  );
+
+  setUpAll(() {
+    registerFallbackValue(<int>[]);
+    registerFallbackValue(
+      AuthSession(
+        token: 'fallback',
+        expiresAt: DateTime(2099),
+        displayName: 'Fallback',
+      ),
+    );
+  });
+
+  ProviderContainer _buildContainer({
+    required SyncQueueDao queueDao,
+    required PunchSyncTransport transport,
+    Duration initialBackoff = const Duration(milliseconds: 10),
+  }) {
+    return ProviderContainer(
+      overrides: [
+        syncQueueDaoProvider.overrideWithValue(queueDao),
+        punchSyncTransportProvider.overrideWithValue(transport),
+        offlineStatusProvider.overrideWith(
+          (ref) => const OfflineStatus(hasConnectivity: true),
+        ),
+        authSessionProvider.overrideWithValue(session),
+        syncManagerProvider.overrideWith((ref) {
+          return SyncManager(
+            queueDao: ref.watch(syncQueueDaoProvider),
+            ref: ref,
+            transport: ref.watch(punchSyncTransportProvider),
+            initialBackoff: initialBackoff,
+            maxBackoff: initialBackoff * 2,
+          );
+        }),
+      ],
+    );
+  }
+
+  test('drains queue when server accepts batch', () async {
+    final queueDao = _MockQueueDao();
+    final transport = _MockPunchSyncTransport();
+
+    final batches = <List<QueuedPayload>>[
+      [
+        const QueuedPayload(
+          id: 1,
+          entityType: 'punch',
+          attemptCount: 0,
+          payload: {'mobile_uuid': 'abc', 'job_id': '245'},
+        ),
+      ],
+      <QueuedPayload>[],
+    ];
+
+    when(
+      () => queueDao.fetchPending(limit: any(named: 'limit')),
+    ).thenAnswer((_) async => batches.removeAt(0));
+    when(() => queueDao.deleteEntries(any())).thenAnswer((_) async {});
+    when(
+      () => transport.send(
+        session: any(named: 'session'),
+        payloads: any(named: 'payloads'),
+      ),
+    ).thenAnswer(
+      (_) async => const PunchSyncResponse(
+        processed: ['abc'],
+        duplicates: [],
+        errors: [],
+      ),
+    );
+
+    final container = _buildContainer(queueDao: queueDao, transport: transport);
+    addTearDown(container.dispose);
+
+    final manager = container.read(syncManagerProvider);
+    await manager.trigger(SyncTrigger.explicit);
+
+    verify(() => queueDao.deleteEntries([1])).called(1);
+    expect(manager.state, SyncState.idle);
+    await manager.dispose();
+  });
+
+  test('backs off and records attempt on retryable errors', () async {
+    final queueDao = _MockQueueDao();
+    final transport = _MockPunchSyncTransport();
+
+    final batches = <List<QueuedPayload>>[
+      [
+        const QueuedPayload(
+          id: 2,
+          entityType: 'punch',
+          attemptCount: 0,
+          payload: {'mobile_uuid': 'retry-me'},
+        ),
+      ],
+      <QueuedPayload>[],
+    ];
+
+    when(
+      () => queueDao.fetchPending(limit: any(named: 'limit')),
+    ).thenAnswer((_) async => batches.removeAt(0));
+    when(
+      () => queueDao.recordAttempt(any(), error: any(named: 'error')),
+    ).thenAnswer((_) async {});
+    when(
+      () => transport.send(
+        session: any(named: 'session'),
+        payloads: any(named: 'payloads'),
+      ),
+    ).thenAnswer(
+      (_) async => const PunchSyncResponse(
+        processed: [],
+        duplicates: [],
+        errors: [
+          PunchSyncError(
+            uuid: 'retry-me',
+            code: 'server_busy',
+            message: 'try later',
+          ),
+        ],
+      ),
+    );
+
+    final container = _buildContainer(queueDao: queueDao, transport: transport);
+    addTearDown(container.dispose);
+
+    final manager = container.read(syncManagerProvider);
+    await manager.trigger(SyncTrigger.explicit);
+
+    verify(() => queueDao.recordAttempt(2, error: 'server_busy')).called(1);
+    expect(manager.state, SyncState.backingOff);
+    await manager.dispose();
+  });
+}
