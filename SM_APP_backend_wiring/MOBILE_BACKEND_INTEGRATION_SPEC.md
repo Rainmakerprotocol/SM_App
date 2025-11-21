@@ -61,6 +61,8 @@ Detailed route stubs live in `API_WIRING.md`.
 
 ### 4.1 Punch Payload
 
+> _Assumption (`DL-005`): Mobile batches currently wrap punches with the metadata shown below (employee, device, batch id, app version). Laravel devs can override the schema later, but until then both sides should treat this as the working contract so QA can validate offline queues._
+
 ```json
 {
   "employee_id": 12,
@@ -158,13 +160,13 @@ Detailed route stubs live in `API_WIRING.md`.
 
 ## 5. Offline & Sync Rules
 
-- **Queue storage:** Drift `sync_queue` rows retain the full punch payload plus attempt counters so the client can batch up to 25 records. `DL-003` locks this architecture through `SyncManager`.
+- **Queue storage:** Drift `sync_queue` rows retain the full punch payload plus attempt counters so the client can batch up to 25 records. `DL-003` locks this architecture through `SyncManager`, and `DL-004` documents that the tables stay plaintext until SQLCipher/FFI encryption is approved.
 - **Sync triggers:** foreground resume, manual “Sync now,” network reconnect, login success, and a 5-minute timer all call `SyncManager.trigger()`; background timers simply enqueue the trigger flag so the UI thread can drain the queue when awakened. Client instrumentation lives in `SyncLifecycleListener` (wraps `FieldApp`) and the manual sync icon inside `NavigationShell`, so QA/backends can trace exactly when triggers fire.
 - **Conflict resolution:** Laravel is the source of truth. The mobile app trusts the server response (`processed`, `duplicates`, `errors`) and purges local punches once acknowledged. Validation failures stay server-side (422) with a human dispute created from the app if needed.
 - **Duplicate handling:** `/api/mobile/punches/batch` must treat duplicate `mobile_uuid` values as 200 responses with a populated `duplicates` array. The app removes those queue entries without re-posting them.
 - **Exponential backoff:** Failed batches retry with jittered doubling (5s → 10s → 20s → 40s → 5m) up to five attempts per punch. After the fifth failure the client drops the record locally but emits analytics so QA can reconcile with backend logs.
 - **Transport states:** Unauthorized (401) responses pause sync until the user logs in again. Server/transport faults keep the timer active so the queue drains automatically once connectivity stabilizes.
-- **GPS handling:** Backend should persist all coordinates (even >80m) but flag high-variance readings. If `gps_unavailable` is true the record is still inserted with a “no-fix” marker for later QA review.
+- **GPS handling (`DL-006`):** Backend should persist all coordinates (even >80m) but flag high-variance readings. If `gps_unavailable` is true the record is still inserted with a “no-fix” marker for later QA review because the client continues punching after a 10s timeout per the interim policy.
 
 ### 5.1 Client Pseudocode (mirrors `field_app_client/lib/offline/sync/sync_manager.dart`)
 
@@ -204,6 +206,9 @@ scheduleRetry():
 | Invalid token | 401 | `{ "success": false, "msg": "Token expired" }` | Force logout + relogin |
 | Validation error | 422 | `{ "success": false, "errors": {"punches.0.job_id": ["Job required"]} }` | Highlight offending record, keep queued |
 | Duplicate punch | 200 | `duplicates` list populated | Mark local record as synced with "duplicate" badge |
+| Invalid job / closed job | 200 | `errors` entry with `code: invalid_job` | Mobile flags punch as `requires_dispute`, stores backend reason, removes from pending queue |
+| Invalid timestamp | 200 | `errors` entry with `code: invalid_timestamp` | Mobile stores validation text, marks record as dispute-required so user can correct locally |
+| Job mismatch | 200 | `errors` entry with `code: job_mismatch` | Mobile auto-marks record as dispute-required and surfaces message once dispute UI lands |
 | Server error | 500 | `{ "success": false, "msg": "Unexpected error" }` | Leave in queue, exponential backoff |
 
 ---
@@ -213,6 +218,7 @@ scheduleRetry():
 - Backend team provides Pest/PHPUnit tests in `tests/Feature/Mobile` using payloads above.
 - Postman collection (to be added under `SM_APP_backend_wiring/postman/`) mirrors every scenario: login, jobs, punches (success/duplicate/error), timesheet, disputes, crew status.
 - Mobile team reuses same collection for manual QA to guarantee parity.
+- Static sample payloads that mimic the eventual `/external/` drops now live under `SM_APP_backend_wiring/mock_external/payloads/`; treat them as temporary fixtures you can paste into tests until real integrations land.
 
 ---
 

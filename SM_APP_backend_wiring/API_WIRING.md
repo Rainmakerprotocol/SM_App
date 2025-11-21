@@ -70,6 +70,7 @@ Each controller should defer heavy logic to services (below) to keep files reada
 
 - Keep exported collection JSON plus sample payloads inside `SM_APP_backend_wiring/postman/` (create once endpoints exist).
 - Mobile team will reuse identical payloads for QA to keep integration friction-free.
+- **Temporary mocks:** Use `SM_APP_backend_wiring/mock_external/payloads/` for throwaway JSON fixtures (login, jobs, punch batch, timesheet) that mirror `/external/` contracts without touching the vendor-owned folder. Each file documents the phase/sub-step it supports so backend devs can copy data directly into Pest/Postman tests.
 
 ## 7. SM_APP Standalone Section
 

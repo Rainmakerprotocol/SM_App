@@ -7,6 +7,7 @@ import 'sync_manager.dart';
 final syncManagerProvider = Provider<SyncManager>((ref) {
   final manager = SyncManager(
     queueDao: ref.watch(syncQueueDaoProvider),
+    punchesDao: ref.watch(punchesDaoProvider),
     ref: ref,
     transport: ref.watch(punchSyncTransportProvider),
   );

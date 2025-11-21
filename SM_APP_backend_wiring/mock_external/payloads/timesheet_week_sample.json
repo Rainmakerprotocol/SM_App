@@ -1,0 +1,29 @@
+{
+  "description": "Sample response for GET /api/mobile/timesheet/week/{employee} (Phase 1-3 §2)",
+  "employee_id": 12,
+  "week": {
+    "start": "2025-11-17",
+    "end": "2025-11-23"
+  },
+  "days": [
+    {
+      "date": "2025-11-21",
+      "regular_hours": 7.0,
+      "ot_hours": 0.5,
+      "notes": "",
+      "punches": [
+        {
+          "uuid": "ba9f6fd7-1a2b-4c5d-88ef-demo001",
+          "job_id": 245,
+          "start_time": "08:00",
+          "end_time": "15:30",
+          "cost_code": 3,
+          "source": "mobile_app"
+        }
+      ]
+    }
+  ],
+  "weekly_total_hours": 38.5,
+  "weekly_ot1_hours": 2.5,
+  "estimated_pay": 1025.50
+}

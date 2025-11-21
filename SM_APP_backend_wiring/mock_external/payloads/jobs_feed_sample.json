@@ -1,0 +1,40 @@
+{
+  "description": "Sample response for GET /api/mobile/jobs/{employee} (Phase 1-3 §1)",
+  "employee_id": 12,
+  "range": {
+    "start": "2025-11-18",
+    "end": "2025-11-25"
+  },
+  "jobs": [
+    {
+      "job_id": 245,
+      "display_id": "JOB-2025-0010",
+      "title": "123 Main - Tear-off",
+      "address": "123 Main St, Flint, MI 48502",
+      "scheduled_date": "2025-11-21",
+      "scheduled_time": "08:00",
+      "services": [
+        {
+          "job_item_id": 611,
+          "service_id": 4,
+          "service_name": "Roofing",
+          "status": 3
+        }
+      ],
+      "crew": [
+        {
+          "employee_id": 12,
+          "name": "John Doe",
+          "role": "Installer",
+          "status": "IN"
+        },
+        {
+          "employee_id": 18,
+          "name": "Ava Foreman",
+          "role": "Foreman",
+          "status": "IN"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "description": "Sample mobile login exchange (Phase 1-1 §2.3)",
+  "request": {
+    "method": "POST",
+    "path": "/api/login",
+    "body": {
+      "email": "crew.member@example.com",
+      "password": "secret123",
+      "device": {
+        "platform": "android",
+        "model": "Pixel 7",
+        "app_version": "1.0.0",
+        "device_id": "demo-device-001"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "token": "jwt-demo-token",
+      "user": {
+        "id": 12,
+        "name": "Crew Member",
+        "email": "crew.member@example.com"
+      }
+    }
+  }
+}

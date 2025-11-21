@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +23,28 @@ class PunchesDao {
   Future<List<PunchesLocalData>> pending() => _db.getPendingPunches();
 
   Future<void> upsert(PunchesLocalCompanion entry) => _db.upsertPunch(entry);
+
+  Future<int> pendingCount() => _db.countPendingPunches();
+
+  Stream<int> watchPendingCount() => _db.watchPendingPunchCount();
+
+  Future<void> markSynced(String punchId) => _db.markPunchSynced(punchId);
+
+  Stream<PendingPunchSnapshot> watchPendingSnapshot() =>
+      _db.watchPendingPunchSnapshot();
+
+  Future<void> markError(
+    String punchId, {
+    required String errorCode,
+    String? errorMessage,
+    bool requiresDispute = false,
+  }) => _db.recordPunchError(
+    punchId,
+    errorCode: errorCode,
+    errorMessage: errorMessage,
+    requiresDispute: requiresDispute,
+    markSynced: requiresDispute,
+  );
 }
 
 final jobsDaoProvider = Provider((ref) {

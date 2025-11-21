@@ -15,6 +15,7 @@ import 'punch_sync_transport.dart';
 class SyncManager {
   SyncManager({
     required this.queueDao,
+    required this.punchesDao,
     required Ref ref,
     required this.transport,
     this.maxBatchSize = 25,
@@ -26,6 +27,7 @@ class SyncManager {
        _maxBackoff = maxBackoff ?? const Duration(minutes: 5);
 
   final SyncQueueDao queueDao;
+  final PunchesDao punchesDao;
   final Ref _ref;
   final PunchSyncTransport transport;
   final int maxBatchSize;
@@ -105,11 +107,13 @@ class SyncManager {
     };
 
     final processedIds = <int>{};
+    final syncedPunchIds = <String>{};
 
     for (final uuid in response.processed) {
       final entry = uuidToEntry[uuid];
       if (entry != null) {
         processedIds.add(entry.id);
+        _collectSyncedId(entry, syncedPunchIds);
       }
     }
 
@@ -117,11 +121,16 @@ class SyncManager {
       final entry = uuidToEntry[uuid];
       if (entry != null) {
         processedIds.add(entry.id);
+        _collectSyncedId(entry, syncedPunchIds);
       }
     }
 
     if (processedIds.isNotEmpty) {
       await queueDao.deleteEntries(processedIds.toList());
+    }
+
+    if (syncedPunchIds.isNotEmpty) {
+      await _markPunchesSynced(syncedPunchIds);
     }
 
     if (response.hasErrors) {
@@ -146,9 +155,17 @@ class SyncManager {
       switch (error.code) {
         case 'duplicate':
           await queueDao.deleteEntries([entry.id]);
+          if (entry.mobileUuid != null) {
+            await _markPunchesSynced({entry.mobileUuid!});
+          }
+          break;
+        case 'invalid_job':
+        case 'invalid_timestamp':
+        case 'job_mismatch':
+          await _handleConflictFailure(entry, error);
           break;
         case 'validation_error':
-          await _handleTerminalFailure(entry, error.code);
+          await _handleTerminalFailure(entry, error);
           break;
         default:
           await _handleRetryableFailure(entry, error.code);
@@ -160,15 +177,43 @@ class SyncManager {
   Future<void> _handleRetryableFailure(QueuedPayload entry, String code) async {
     if (entry.attemptCount + 1 >= maxAttempts) {
       await queueDao.deleteEntries([entry.id]);
+      if (entry.mobileUuid != null) {
+        await punchesDao.markError(entry.mobileUuid!, errorCode: code);
+      }
       return;
     }
     await queueDao.recordAttempt(entry.id, error: code);
     _scheduleRetry();
   }
 
-  Future<void> _handleTerminalFailure(QueuedPayload entry, String code) async {
+  Future<void> _handleTerminalFailure(
+    QueuedPayload entry,
+    PunchSyncError error,
+  ) async {
     await queueDao.deleteEntries([entry.id]);
+    if (entry.mobileUuid != null) {
+      await punchesDao.markError(
+        entry.mobileUuid!,
+        errorCode: error.code,
+        errorMessage: error.message,
+      );
+    }
     // TODO: surface analytics hook for permanently dropped payloads.
+  }
+
+  Future<void> _handleConflictFailure(
+    QueuedPayload entry,
+    PunchSyncError error,
+  ) async {
+    await queueDao.deleteEntries([entry.id]);
+    if (entry.mobileUuid != null) {
+      await punchesDao.markError(
+        entry.mobileUuid!,
+        errorCode: error.code,
+        errorMessage: error.message,
+        requiresDispute: true,
+      );
+    }
   }
 
   void _handleTransportException(PunchSyncTransportException exception) {
@@ -202,6 +247,20 @@ class SyncManager {
     final jitter = Random().nextDouble() * _initialBackoff.inMilliseconds;
     final result = Duration(milliseconds: next.inMilliseconds + jitter.toInt());
     return result > _maxBackoff ? _maxBackoff : result;
+  }
+
+  void _collectSyncedId(QueuedPayload entry, Set<String> accumulator) {
+    final uuid = entry.mobileUuid;
+    if (entry.entityType != 'punch' || uuid == null) {
+      return;
+    }
+    accumulator.add(uuid);
+  }
+
+  Future<void> _markPunchesSynced(Iterable<String> punchIds) async {
+    for (final punchId in punchIds) {
+      await punchesDao.markSynced(punchId);
+    }
   }
 }
 

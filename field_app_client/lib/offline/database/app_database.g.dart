@@ -175,6 +175,21 @@ class $PunchesLocalTable extends PunchesLocal
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _requiresDisputeMeta = const VerificationMeta(
+    'requiresDispute',
+  );
+  @override
+  late final GeneratedColumn<bool> requiresDispute = GeneratedColumn<bool>(
+    'requires_dispute',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("requires_dispute" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -216,6 +231,7 @@ class $PunchesLocalTable extends PunchesLocal
     source,
     deviceId,
     lastError,
+    requiresDispute,
     createdAt,
     updatedAt,
   ];
@@ -343,6 +359,15 @@ class $PunchesLocalTable extends PunchesLocal
         lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
       );
     }
+    if (data.containsKey('requires_dispute')) {
+      context.handle(
+        _requiresDisputeMeta,
+        requiresDispute.isAcceptableOrUnknown(
+          data['requires_dispute']!,
+          _requiresDisputeMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -424,6 +449,10 @@ class $PunchesLocalTable extends PunchesLocal
         DriftSqlType.string,
         data['${effectivePrefix}last_error'],
       ),
+      requiresDispute: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}requires_dispute'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -458,6 +487,7 @@ class PunchesLocalData extends DataClass
   final String source;
   final String? deviceId;
   final String? lastError;
+  final bool requiresDispute;
   final DateTime createdAt;
   final DateTime updatedAt;
   const PunchesLocalData({
@@ -476,6 +506,7 @@ class PunchesLocalData extends DataClass
     required this.source,
     this.deviceId,
     this.lastError,
+    required this.requiresDispute,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -509,6 +540,7 @@ class PunchesLocalData extends DataClass
     if (!nullToAbsent || lastError != null) {
       map['last_error'] = Variable<String>(lastError);
     }
+    map['requires_dispute'] = Variable<bool>(requiresDispute);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -543,6 +575,7 @@ class PunchesLocalData extends DataClass
       lastError: lastError == null && nullToAbsent
           ? const Value.absent()
           : Value(lastError),
+      requiresDispute: Value(requiresDispute),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -569,6 +602,7 @@ class PunchesLocalData extends DataClass
       source: serializer.fromJson<String>(json['source']),
       deviceId: serializer.fromJson<String?>(json['deviceId']),
       lastError: serializer.fromJson<String?>(json['lastError']),
+      requiresDispute: serializer.fromJson<bool>(json['requiresDispute']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -592,6 +626,7 @@ class PunchesLocalData extends DataClass
       'source': serializer.toJson<String>(source),
       'deviceId': serializer.toJson<String?>(deviceId),
       'lastError': serializer.toJson<String?>(lastError),
+      'requiresDispute': serializer.toJson<bool>(requiresDispute),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -613,6 +648,7 @@ class PunchesLocalData extends DataClass
     String? source,
     Value<String?> deviceId = const Value.absent(),
     Value<String?> lastError = const Value.absent(),
+    bool? requiresDispute,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => PunchesLocalData(
@@ -631,6 +667,7 @@ class PunchesLocalData extends DataClass
     source: source ?? this.source,
     deviceId: deviceId.present ? deviceId.value : this.deviceId,
     lastError: lastError.present ? lastError.value : this.lastError,
+    requiresDispute: requiresDispute ?? this.requiresDispute,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -661,6 +698,9 @@ class PunchesLocalData extends DataClass
       source: data.source.present ? data.source.value : this.source,
       deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
       lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      requiresDispute: data.requiresDispute.present
+          ? data.requiresDispute.value
+          : this.requiresDispute,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -684,6 +724,7 @@ class PunchesLocalData extends DataClass
           ..write('source: $source, ')
           ..write('deviceId: $deviceId, ')
           ..write('lastError: $lastError, ')
+          ..write('requiresDispute: $requiresDispute, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -707,6 +748,7 @@ class PunchesLocalData extends DataClass
     source,
     deviceId,
     lastError,
+    requiresDispute,
     createdAt,
     updatedAt,
   );
@@ -729,6 +771,7 @@ class PunchesLocalData extends DataClass
           other.source == this.source &&
           other.deviceId == this.deviceId &&
           other.lastError == this.lastError &&
+          other.requiresDispute == this.requiresDispute &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -749,6 +792,7 @@ class PunchesLocalCompanion extends UpdateCompanion<PunchesLocalData> {
   final Value<String> source;
   final Value<String?> deviceId;
   final Value<String?> lastError;
+  final Value<bool> requiresDispute;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -768,6 +812,7 @@ class PunchesLocalCompanion extends UpdateCompanion<PunchesLocalData> {
     this.source = const Value.absent(),
     this.deviceId = const Value.absent(),
     this.lastError = const Value.absent(),
+    this.requiresDispute = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -788,6 +833,7 @@ class PunchesLocalCompanion extends UpdateCompanion<PunchesLocalData> {
     this.source = const Value.absent(),
     this.deviceId = const Value.absent(),
     this.lastError = const Value.absent(),
+    this.requiresDispute = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -812,6 +858,7 @@ class PunchesLocalCompanion extends UpdateCompanion<PunchesLocalData> {
     Expression<String>? source,
     Expression<String>? deviceId,
     Expression<String>? lastError,
+    Expression<bool>? requiresDispute,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -832,6 +879,7 @@ class PunchesLocalCompanion extends UpdateCompanion<PunchesLocalData> {
       if (source != null) 'source': source,
       if (deviceId != null) 'device_id': deviceId,
       if (lastError != null) 'last_error': lastError,
+      if (requiresDispute != null) 'requires_dispute': requiresDispute,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -854,6 +902,7 @@ class PunchesLocalCompanion extends UpdateCompanion<PunchesLocalData> {
     Value<String>? source,
     Value<String?>? deviceId,
     Value<String?>? lastError,
+    Value<bool>? requiresDispute,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -874,6 +923,7 @@ class PunchesLocalCompanion extends UpdateCompanion<PunchesLocalData> {
       source: source ?? this.source,
       deviceId: deviceId ?? this.deviceId,
       lastError: lastError ?? this.lastError,
+      requiresDispute: requiresDispute ?? this.requiresDispute,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -928,6 +978,9 @@ class PunchesLocalCompanion extends UpdateCompanion<PunchesLocalData> {
     if (lastError.present) {
       map['last_error'] = Variable<String>(lastError.value);
     }
+    if (requiresDispute.present) {
+      map['requires_dispute'] = Variable<bool>(requiresDispute.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -958,6 +1011,7 @@ class PunchesLocalCompanion extends UpdateCompanion<PunchesLocalData> {
           ..write('source: $source, ')
           ..write('deviceId: $deviceId, ')
           ..write('lastError: $lastError, ')
+          ..write('requiresDispute: $requiresDispute, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -2668,6 +2722,7 @@ typedef $$PunchesLocalTableCreateCompanionBuilder =
       Value<String> source,
       Value<String?> deviceId,
       Value<String?> lastError,
+      Value<bool> requiresDispute,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -2689,6 +2744,7 @@ typedef $$PunchesLocalTableUpdateCompanionBuilder =
       Value<String> source,
       Value<String?> deviceId,
       Value<String?> lastError,
+      Value<bool> requiresDispute,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -2775,6 +2831,11 @@ class $$PunchesLocalTableFilterComposer
 
   ColumnFilters<String> get lastError => $composableBuilder(
     column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get requiresDispute => $composableBuilder(
+    column: $table.requiresDispute,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2873,6 +2934,11 @@ class $$PunchesLocalTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get requiresDispute => $composableBuilder(
+    column: $table.requiresDispute,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2948,6 +3014,11 @@ class $$PunchesLocalTableAnnotationComposer
   GeneratedColumn<String> get lastError =>
       $composableBuilder(column: $table.lastError, builder: (column) => column);
 
+  GeneratedColumn<bool> get requiresDispute => $composableBuilder(
+    column: $table.requiresDispute,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -3001,6 +3072,7 @@ class $$PunchesLocalTableTableManager
                 Value<String> source = const Value.absent(),
                 Value<String?> deviceId = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
+                Value<bool> requiresDispute = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -3020,6 +3092,7 @@ class $$PunchesLocalTableTableManager
                 source: source,
                 deviceId: deviceId,
                 lastError: lastError,
+                requiresDispute: requiresDispute,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -3041,6 +3114,7 @@ class $$PunchesLocalTableTableManager
                 Value<String> source = const Value.absent(),
                 Value<String?> deviceId = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
+                Value<bool> requiresDispute = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -3060,6 +3134,7 @@ class $$PunchesLocalTableTableManager
                 source: source,
                 deviceId: deviceId,
                 lastError: lastError,
+                requiresDispute: requiresDispute,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

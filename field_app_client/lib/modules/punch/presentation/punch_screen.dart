@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/punch_repository.dart';
+
 final punchStatusProvider = Provider<PunchStatus>((ref) {
-  return const PunchStatus(
+  final pendingStatsAsync = ref.watch(pendingPunchStatsProvider);
+  final stats = pendingStatsAsync.maybeWhen(
+    data: (value) => value,
+    orElse: () => PendingPunchStats.empty,
+  );
+  return PunchStatus(
     isClockedIn: true,
     activeJob: 'SM-2401 · Storm Inspection',
     since: '2h 14m',
-    pendingSync: 2,
+    pendingSync: stats.count,
+    oldestPendingAge: stats.oldestAge(),
     gpsAccuracy: 12,
   );
 });
@@ -38,14 +46,8 @@ class PunchScreen extends ConsumerWidget {
                 label: 'Break Start',
                 icon: Icons.free_breakfast,
               ),
-              const _PunchActionButton(
-                label: 'Break End',
-                icon: Icons.timer,
-              ),
-              const _PunchActionButton(
-                label: 'Sync Now',
-                icon: Icons.sync,
-              ),
+              const _PunchActionButton(label: 'Break End', icon: Icons.timer),
+              const _PunchActionButton(label: 'Sync Now', icon: Icons.sync),
             ],
           ),
           const SizedBox(height: 24),
@@ -94,7 +96,12 @@ class _StatusTile extends StatelessWidget {
             Text('Elapsed: ${status.since}'),
             const SizedBox(height: 12),
             Chip(
-              label: Text('Pending Sync: ${status.pendingSync}'),
+              label: Text(
+                _pendingChipLabel(
+                  count: status.pendingSync,
+                  ageLabel: _formatAge(status.oldestPendingAge),
+                ),
+              ),
               avatar: const Icon(Icons.cloud_upload),
             ),
           ],
@@ -102,6 +109,13 @@ class _StatusTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String _pendingChipLabel({required int count, String? ageLabel}) {
+  if (ageLabel == null || ageLabel.isEmpty) {
+    return 'Pending Sync: $count';
+  }
+  return 'Pending Sync: $count · $ageLabel';
 }
 
 class _PunchActionButton extends StatelessWidget {
@@ -135,6 +149,7 @@ class PunchStatus {
     required this.activeJob,
     required this.since,
     required this.pendingSync,
+    this.oldestPendingAge,
     required this.gpsAccuracy,
   });
 
@@ -142,5 +157,22 @@ class PunchStatus {
   final String activeJob;
   final String since;
   final int pendingSync;
+  final Duration? oldestPendingAge;
   final int gpsAccuracy;
+}
+
+String? _formatAge(Duration? age) {
+  if (age == null) {
+    return null;
+  }
+  if (age.inDays >= 1) {
+    return '${age.inDays}d';
+  }
+  if (age.inHours >= 1) {
+    return '${age.inHours}h';
+  }
+  if (age.inMinutes >= 1) {
+    return '${age.inMinutes}m';
+  }
+  return '${age.inSeconds}s';
 }

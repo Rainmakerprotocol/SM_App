@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -17,18 +18,20 @@ class PunchesLocal extends Table {
   RealColumn get gpsLat => real().nullable()();
   RealColumn get gpsLng => real().nullable()();
   RealColumn get gpsAccuracy => real().nullable()();
-  BoolColumn get gpsUnavailable => boolean().withDefault(const Constant(false))();
+  BoolColumn get gpsUnavailable =>
+      boolean().withDefault(const Constant(false))();
   BoolColumn get synced => boolean().withDefault(const Constant(false))();
   IntColumn get syncAttempts => integer().withDefault(const Constant(0))();
   TextColumn get source => text().withDefault(const Constant('mobile_app'))();
   TextColumn get deviceId => text().nullable()();
   TextColumn get lastError => text().nullable()();
+  BoolColumn get requiresDispute =>
+      boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {punchId};
-
 }
 
 class JobsLocal extends Table {
@@ -72,16 +75,23 @@ class SyncQueue extends Table {
   DateTimeColumn get lastAttemptAt => dateTime().nullable()();
 }
 
-@DriftDatabase(
-  tables: [PunchesLocal, JobsLocal, ProfileLocal, SyncQueue],
-)
+@DriftDatabase(tables: [PunchesLocal, JobsLocal, ProfileLocal, SyncQueue])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await migrator.addColumn(punchesLocal, punchesLocal.requiresDispute);
+      }
+    },
+  );
 
   Future<void> reset() async {
     await batch((batch) {
@@ -93,29 +103,105 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<List<PunchesLocalData>> getPendingPunches() {
-    return (select(punchesLocal)..where((tbl) => tbl.synced.equals(false))).get();
+    return (select(
+      punchesLocal,
+    )..where((tbl) => tbl.synced.equals(false))).get();
   }
 
   Future<void> upsertPunch(PunchesLocalCompanion entry) {
     return into(punchesLocal).insertOnConflictUpdate(entry);
   }
 
+  Future<int> countPendingPunches() async {
+    final countExpression = punchesLocal.punchId.count();
+    final query = selectOnly(punchesLocal)
+      ..addColumns([countExpression])
+      ..where(punchesLocal.synced.equals(false));
+    final row = await query.getSingle();
+    return row.read(countExpression) ?? 0;
+  }
+
+  Stream<int> watchPendingPunchCount() {
+    final countExpression = punchesLocal.punchId.count();
+    final query = selectOnly(punchesLocal)
+      ..addColumns([countExpression])
+      ..where(punchesLocal.synced.equals(false));
+    return query.watchSingle().map((row) => row.read(countExpression) ?? 0);
+  }
+
   Future<void> markPunchSynced(String punchId) async {
-    await (update(punchesLocal)..where((tbl) => tbl.punchId.equals(punchId))).write(
-      const PunchesLocalCompanion(
-        synced: Value(true),
-        syncAttempts: Value(0),
-        lastError: Value<String?>(null),
+    await (update(
+      punchesLocal,
+    )..where((tbl) => tbl.punchId.equals(punchId))).write(
+      PunchesLocalCompanion(
+        synced: const Value(true),
+        syncAttempts: const Value(0),
+        lastError: const Value<String?>(null),
+        requiresDispute: const Value(false),
+        updatedAt: Value(DateTime.now()),
       ),
+    );
+  }
+
+  Stream<PendingPunchSnapshot> watchPendingPunchSnapshot() {
+    final countExpression = punchesLocal.punchId.count();
+    final oldestExpression = punchesLocal.timestampDevice.min();
+    final query = selectOnly(punchesLocal)
+      ..addColumns([countExpression, oldestExpression])
+      ..where(punchesLocal.synced.equals(false));
+    return query.watchSingle().map((row) {
+      final count = row.read(countExpression) ?? 0;
+      final oldest = row.read(oldestExpression);
+      return PendingPunchSnapshot(count: count, oldestTimestamp: oldest);
+    });
+  }
+
+  Future<void> recordPunchError(
+    String punchId, {
+    required String errorCode,
+    String? errorMessage,
+    bool requiresDispute = false,
+    bool markSynced = false,
+  }) async {
+    final resolved = errorMessage == null
+        ? errorCode
+        : '$errorCode: $errorMessage';
+    await (update(
+      punchesLocal,
+    )..where((tbl) => tbl.punchId.equals(punchId))).write(
+      PunchesLocalCompanion(
+        lastError: Value(resolved),
+        requiresDispute: requiresDispute
+            ? const Value(true)
+            : const Value.absent(),
+        synced: markSynced ? const Value(true) : const Value.absent(),
+        syncAttempts: const Value(0),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> flagPunchForDispute(
+    String punchId, {
+    required String errorCode,
+    String? errorMessage,
+  }) {
+    return recordPunchError(
+      punchId,
+      errorCode: errorCode,
+      errorMessage: errorMessage,
+      requiresDispute: true,
+      markSynced: true,
     );
   }
 
   Future<List<SyncQueueData>> oldestQueueItems({int limit = 20}) {
     final query = (select(syncQueue)
-          ..orderBy([
-            (tbl) => OrderingTerm(expression: tbl.createdAt, mode: OrderingMode.asc),
-          ])
-          ..limit(limit));
+      ..orderBy([
+        (tbl) =>
+            OrderingTerm(expression: tbl.createdAt, mode: OrderingMode.asc),
+      ])
+      ..limit(limit));
     return query.get();
   }
 
@@ -124,7 +210,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<int> incrementQueueAttempt(int id, {String? error}) async {
-    final row = await (select(syncQueue)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+    final row = await (select(
+      syncQueue,
+    )..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
     if (row == null) {
       return 0;
     }
@@ -155,6 +243,16 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'storm_master.db'));
+    // TODO(DL-004): Swap this plaintext driver with SQLCipher/FFI encryption
+    // once Security finalizes the at-rest policy. The repository layer already
+    // treats the database as opaque so dropping in a new executor is safe.
     return NativeDatabase.createInBackground(file);
   });
+}
+
+class PendingPunchSnapshot {
+  const PendingPunchSnapshot({required this.count, this.oldestTimestamp});
+
+  final int count;
+  final DateTime? oldestTimestamp;
 }

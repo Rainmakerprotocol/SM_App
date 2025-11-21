@@ -390,6 +390,8 @@ This document expands **Phase 1-2** into precise, sequential engineering steps r
 
 ### **2. GPS Integration**
 
+> _Decision Update (`DL-006`): Until backend finalizes telemetry expectations, the mobile app will request a high-accuracy fix for up to 10 seconds, fall back to the last cached coordinate if available, and otherwise mark `gps_unavailable=true` while still allowing the punch to proceed. Backend/security can override this policy later without rewiring the UI._
+
 #### **2.1 Request Permissions**
 
 - Prompt for foreground location on first launch of Punch screen; defer background access until Phase 2+.
@@ -437,6 +439,18 @@ Fields:
 - Include `gps_unavailable`, `device_id`, and `last_error` columns so troubleshooting data persists offline.
 - Define composite indexes (e.g., `employee_id + timestamp_device`) to keep queries snappy when queue grows.
 
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Drift schema `PunchesLocal` now persists UUID, GPS, device metadata, and last-error fields with helper queries/streams for pending counts (`field_app_client/lib/offline/database/app_database.dart`).
+- [x] Copilot — DAO helpers expose `pendingCount()` + `watchPendingCount()` so services and UI can inspect unsynced punches without manual SQL (`lib/offline/offline_providers.dart`).
+- [ ] Security — AES-at-rest hardening is deferred per `DL-004`; plaintext Drift tables ship now with comments/TODOs so Security can swap in SQLCipher or record-level AES once they weigh in.
+
+**Past:** Table definition existed but no aggregated helpers meant services could not observe pending totals efficiently.
+
+**Present:** Drift exposes both direct queries and live streams for unsynced punches, matching the column requirements in this step while remaining mock-friendly.
+
+**Future:** Layer field-level obfuscation/encryption once the security checklist clarifies expectations and update DAO helpers accordingly; `DL-004` tracks the swap plan so backend/security know where to intervene.
+
 #### **3.2 Insert Punch Records**
 
 - Every punch → instant local write
@@ -444,11 +458,34 @@ Fields:
 - Wrap writes in transactions so partial failures (e.g., GPS missing) don’t corrupt the queue.
 - Encrypt queued payloads at rest if device policy requires (document decision in security checklist).
 
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Added `PunchDraft` + `PunchRepository` to write punches locally, capture GPS/device metadata, and enqueue matching JSON payloads in `sync_queue` with deterministic UUIDs (`lib/modules/punch/domain/punch_models.dart`, `lib/modules/punch/data/punch_repository.dart`).
+- [x] Copilot — Unit coverage validates insert + enqueue behavior and pending-count streams (`test/modules/punch/punch_repository_test.dart`); evidence logged in `qa/logs/local_punch_storage_tests_2025-11-21.md`.
+- [ ] Backend Team — Validate the interim payload + storage assumptions captured in `DL-004`/`DL-005` and override if Laravel or Security need different fields/encryption semantics.
+
+**Past:** Punch UI buttons were placeholders with no persistence, so offline queue never captured new events.
+
+**Present:** Repository API synchronously writes to Drift then pushes identical payloads into `sync_queue`, ensuring SyncManager sees consistent batches even while offline; transport now assumes the wrapper payload described in `DL-005` until backend overrides it.
+
+**Future:** Integrate GPS capture + job selectors once UI wiring matures; add error analytics for terminal failures per §4.4, and revisit the payload fields if backend adopts a different schema than the one assumed in `DL-005`.
+
 #### **3.3 Add “Pending Sync” Badge**
 
 - UI reflects unsynced punches
 - Foreman sees crew’s unsynced count
 - Show exact count + oldest pending age to prompt manual sync before end-of-day exports.
+
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Hooked `PunchScreen` chip into `pendingPunchCountProvider` so the badge reflects live Drift counts even while data remains mock (`lib/modules/punch/presentation/punch_screen.dart`).
+- [ ] Product — Design updated indicator copy for crew/foreman dashboards plus “oldest pending age” once UX assets are ready.
+
+**Past:** Badge displayed a hard-coded number, masking real queue health.
+
+**Present:** Riverpod stream wiring now surfaces both the unsynced count and oldest pending age from Drift, and `SyncManager` marks `punches_local.synced=true` once batches finish so badges clear without manual refresh (the Punch screen chip shows `Pending Sync: N · Xm`).
+
+**Future:** Extend the provider to include timestamps/crew-level aggregates for Home dashboard + foreman view per later subsections.
 
 ---
 
@@ -503,10 +540,21 @@ Triggers:
 
 If server returns:
 
-- Duplicate punch → mark as synced
-- Invalid job_id → flag record
-- Invalid timestamp → send correction request
-- Automatically open dispute draft when server rejects a punch due to job mismatch, so employees can correct quickly.
+- [x] Duplicate punch → mark as synced
+- [x] Invalid job_id → flag record
+- [x] Invalid timestamp → send correction request
+- [x] Automatically open dispute draft when server rejects a punch due to job mismatch, so employees can correct quickly.
+
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Extended Drift schema with `requiresDispute` flag and error helpers, then taught `SyncManager` + tests to route `invalid_job` / `invalid_timestamp` / `job_mismatch` responses into dispute markers while clearing the sync queue (`lib/offline/database/app_database.dart`, `lib/offline/sync/sync_manager.dart`, `test/offline/sync_manager_test.dart`).
+- [ ] Backend Team — Confirm final error-code taxonomy + dispute automation expectations in Laravel controller so mobile + backend stay aligned (`SM_APP_backend_wiring/MOBILE_BACKEND_INTEGRATION_SPEC.md`).
+
+**Past:** Sync errors were only retried or dropped, leaving technicians blind about why punches stalled.
+
+**Present:** Conflict codes now mark punches as synced-but-requires-dispute per `DL-007`, log the backend reason, and remove them from the pending badge while QA evidence (`qa/logs/local_punch_storage_tests_2025-11-21.md`) covers the new flows.
+
+**Future:** Wire these dispute markers into the upcoming dispute UI + crew dashboards once `/api/mobile/disputes` ships, and let backend override conflict policies via the shared error-code list.
 
 ---
 
@@ -517,6 +565,7 @@ If server returns:
 `POST /api/mobile/punches/batch`
 
 - Backend status: **Not built yet.** Laravel team must add `MobilePunchController::batchStore`, new routes under `Route::prefix('mobile')`, and the GPS/device/source columns referenced earlier before the app can call this endpoint.
+- Interim payload contract lives in `DL-005` + the wiring spec: mobile batches will wrap `employee_id`, `device_id`, `app_version`, and the detailed punch list so backend engineers know what to expect until they choose a different schema.
 - Provide API contract + sample Postman collection from the mobile team so backend devs can mirror payload/response expectations.
 
 #### **5.2 Build Payload Structure**

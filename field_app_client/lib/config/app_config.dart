@@ -33,4 +33,11 @@ class AppConfig {
     'USE_MOCK_TIMESHEET_API',
     defaultValue: true,
   );
+
+  /// Placeholder version label used in batch payloads until runtime metadata
+  /// wiring lands (`DL-005`). Backend teams can override via --dart-define.
+  static const String appVersionLabel = String.fromEnvironment(
+    'SM_APP_VERSION',
+    defaultValue: '0.0.0-dev',
+  );
 }

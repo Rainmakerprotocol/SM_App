@@ -1,0 +1,48 @@
+{
+  "description": "Sample payload for POST /api/mobile/punches/batch (Phase 1-2 §5)",
+  "request": {
+    "employee_id": 12,
+    "device_id": "demo-device-001",
+    "batch_id": "2025-11-21T13:00:00Z-12",
+    "punches": [
+      {
+        "mobile_uuid": "ba9f6fd7-1a2b-4c5d-88ef-demo001",
+        "job_id": 245,
+        "job_item_id": 611,
+        "service_id": 4,
+        "type": "IN",
+        "timestamp_device": "2025-11-21T08:00:00-05:00",
+        "gps_lat": 43.012345,
+        "gps_lng": -83.123456,
+        "gps_accuracy": 11.5,
+        "gps_unavailable": false,
+        "source": "mobile_app"
+      },
+      {
+        "mobile_uuid": "d5c4b3a2-99ff-4ed1-demo002",
+        "job_id": 245,
+        "job_item_id": 611,
+        "service_id": 4,
+        "type": "OUT",
+        "timestamp_device": "2025-11-21T15:35:00-05:00",
+        "gps_lat": 43.012311,
+        "gps_lng": -83.123477,
+        "gps_accuracy": 16.2,
+        "gps_unavailable": false,
+        "source": "mobile_app"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "processed": [
+        "ba9f6fd7-1a2b-4c5d-88ef-demo001",
+        "d5c4b3a2-99ff-4ed1-demo002"
+      ],
+      "duplicates": [],
+      "errors": []
+    }
+  }
+}

@@ -80,9 +80,30 @@ class RestPunchSyncTransport implements PunchSyncTransport {
     required AuthSession session,
     required List<PunchPayload> payloads,
   }) async {
-    final body = {
-      'punches': [for (final payload in payloads) payload.data],
+    if (payloads.isEmpty) {
+      return const PunchSyncResponse(processed: [], duplicates: [], errors: []);
+    }
+
+    final punches = [for (final payload in payloads) payload.data];
+    final envelopeSeed = punches.first;
+    final employeeId = envelopeSeed['employee_id'];
+    final deviceId = envelopeSeed['device_id'];
+
+    // NOTE(DL-005): Until backend overrides the punch batch schema, mobile
+    // envelopes include high-level metadata plus the raw punch list so both
+    // sides can validate analytics and auditing fields consistently.
+    final body = <String, dynamic>{
+      'batch_id': _buildBatchId(employeeId),
+      'punches': punches,
+      'app_version': AppConfig.appVersionLabel,
     };
+
+    if (employeeId != null) {
+      body['employee_id'] = employeeId;
+    }
+    if (deviceId != null) {
+      body['device_id'] = deviceId;
+    }
 
     final response = await client.post(
       Uri.parse('$baseUrl/api/mobile/punches/batch'),
@@ -132,6 +153,12 @@ class RestPunchSyncTransport implements PunchSyncTransport {
       errors: errors,
     );
   }
+}
+
+String _buildBatchId(Object? employeeId) {
+  final ts = DateTime.now().toUtc().toIso8601String();
+  final suffix = employeeId?.toString() ?? 'anon';
+  return '$ts-$suffix';
 }
 
 class PunchSyncTransportException implements Exception {
