@@ -1,4 +1,5 @@
 # Mobile ↔ Backend Integration Specification
+
 **Version:** 1.0  
 **Date:** November 20, 2025  
 **Scope:** Defines how the Storm Master Field App interacts with the existing Laravel backend once `/api/mobile/*` endpoints are implemented.
@@ -6,6 +7,7 @@
 ---
 
 ## 1. System Overview
+
 - **Existing flow:** Job clocks (RFID) → `/api/rm-check` → `time_cards` → Angular admin.
 - **New flow:** Mobile app → `/api/mobile/*` → shared database. Mobile punches must peacefully coexist with hardware punches.
 - **Deployment goal:** Provide human developers a drop-in wiring kit (see this folder) so they can add endpoints without touching `external/` data.
@@ -13,11 +15,13 @@
 ---
 
 ## 2. Authentication Flow
+
 1. User opens app → enters email/username + password.
 2. App hits `POST /api/login` (existing) or `/api/mobile/login` (wrapper once available).
 3. Backend issues JWT (`Authorization: Bearer {token}`; 30-day TTL). No refresh endpoint; app re-prompts on 401.
 4. App stores token securely (Keychain/Keystore) and attaches to all calls.
 5. Optional device metadata payload:
+
    ```json
    {
      "email": "john@example.com",
@@ -31,29 +35,32 @@
    }
    ```
 
-  - Mobile client implementation detail: `AuthMetadataCollector` (see `field_app_client/lib/modules/auth/data/`) now generates a persistent `device_id` via secure storage, ensuring login payloads report a stable identifier per install for audit trails.
+- Mobile client implementation detail: `AuthMetadataCollector` (see `field_app_client/lib/modules/auth/data/`) now generates a persistent `device_id` via secure storage, ensuring login payloads report a stable identifier per install for audit trails.
 
 ---
 
 ## 3. Endpoint Matrix
+
 | Feature | Endpoint | Method | Notes |
 |---------|----------|--------|-------|
-| Login | `/api/login` (now) → `/api/mobile/login` (future) | POST | Returns JWT + user profile.
-| Profile read | `/api/mobile/profile/{employee}` | GET | Wraps `User` data; includes pay rate.
-| Profile update | `/api/mobile/profile/{employee}` | PUT | Whitelist: phone, address, company phone, image.
-| Jobs feed | `/api/mobile/jobs/{employee}` | GET | Employee view (today+future). Foreman view includes crew + ±14 days.
-| Punch sync | `/api/mobile/punches/batch` | POST | Accepts queued punches, GPS, device metadata.
-| Timesheet | `/api/mobile/timesheet/week/{employee}` | GET | Weekly totals, NA1/NA2, estimated pay.
-| Disputes | `/api/mobile/disputes` | POST | Creates disputes; reuse existing tables.
-| Dispute thread | `/api/mobile/disputes/{employee}` | GET | Returns dispute history + comments.
-| Crew status | `/api/mobile/crew/status/{foreman}` | GET | Real-time crew punches, unsynced counts.
+| Login | `/api/login` (now) → `/api/mobile/login` (future) | POST | Returns JWT + user profile |
+| Profile read | `/api/mobile/profile/{employee}` | GET | Wraps `User` data; includes pay rate |
+| Profile update | `/api/mobile/profile/{employee}` | PUT | Whitelist: phone, address, company phone, image |
+| Jobs feed | `/api/mobile/jobs/{employee}` | GET | Employee view (today+future). Foreman view includes crew + ±14 days |
+| Punch sync | `/api/mobile/punches/batch` | POST | Accepts queued punches, GPS, device metadata |
+| Timesheet | `/api/mobile/timesheet/week/{employee}` | GET | Weekly totals, NA1/NA2, estimated pay |
+| Disputes | `/api/mobile/disputes` | POST | Creates disputes; reuse existing tables |
+| Dispute thread | `/api/mobile/disputes/{employee}` | GET | Returns dispute history + comments |
+| Crew status | `/api/mobile/crew/status/{foreman}` | GET | Real-time crew punches, unsynced counts |
 
 Detailed route stubs live in `API_WIRING.md`.
 
 ---
 
 ## 4. Data Contracts
+
 ### 4.1 Punch Payload
+
 ```json
 {
   "employee_id": 12,
@@ -77,7 +84,9 @@ Detailed route stubs live in `API_WIRING.md`.
   ]
 }
 ```
+
 **Response:**
+
 ```json
 {
   "success": true,
@@ -88,6 +97,7 @@ Detailed route stubs live in `API_WIRING.md`.
 ```
 
 ### 4.2 Job Feed Response
+
 ```json
 {
   "employee_id": 12,
@@ -115,6 +125,7 @@ Detailed route stubs live in `API_WIRING.md`.
 ```
 
 ### 4.3 Timesheet Response
+
 ```json
 {
   "employee_id": 12,
@@ -146,8 +157,9 @@ Detailed route stubs live in `API_WIRING.md`.
 ---
 
 ## 5. Offline & Sync Rules
+
 - **Queue storage:** Drift `sync_queue` rows retain the full punch payload plus attempt counters so the client can batch up to 25 records. `DL-003` locks this architecture through `SyncManager`.
-- **Sync triggers:** foreground resume, manual “Sync now,” network reconnect, login success, and a 5-minute timer all call `SyncManager.trigger()`; background timers simply enqueue the trigger flag so the UI thread can drain the queue when awakened.
+- **Sync triggers:** foreground resume, manual “Sync now,” network reconnect, login success, and a 5-minute timer all call `SyncManager.trigger()`; background timers simply enqueue the trigger flag so the UI thread can drain the queue when awakened. Client instrumentation lives in `SyncLifecycleListener` (wraps `FieldApp`) and the manual sync icon inside `NavigationShell`, so QA/backends can trace exactly when triggers fire.
 - **Conflict resolution:** Laravel is the source of truth. The mobile app trusts the server response (`processed`, `duplicates`, `errors`) and purges local punches once acknowledged. Validation failures stay server-side (422) with a human dispute created from the app if needed.
 - **Duplicate handling:** `/api/mobile/punches/batch` must treat duplicate `mobile_uuid` values as 200 responses with a populated `duplicates` array. The app removes those queue entries without re-posting them.
 - **Exponential backoff:** Failed batches retry with jittered doubling (5s → 10s → 20s → 40s → 5m) up to five attempts per punch. After the fifth failure the client drops the record locally but emits analytics so QA can reconcile with backend logs.
@@ -155,7 +167,8 @@ Detailed route stubs live in `API_WIRING.md`.
 - **GPS handling:** Backend should persist all coordinates (even >80m) but flag high-variance readings. If `gps_unavailable` is true the record is still inserted with a “no-fix” marker for later QA review.
 
 ### 5.1 Client Pseudocode (mirrors `field_app_client/lib/offline/sync/sync_manager.dart`)
-```
+
+``` Enhanced Text
 triggerSync(trigger):
   if !hasConnectivity: return scheduleRetry()
   session = readAuthSession()
@@ -177,6 +190,7 @@ scheduleRetry():
 ```
 
 ### 5.2 Backend Expectations
+
 - Surface `processed`, `duplicates`, and per-record `errors` with `{ uuid, code, message }` so the mobile app can apply the above flow deterministically.
 - Log every rejected punch with the mobile UUID, employee ID, and reason to match analytics coming from the app.
 - Honor `Authorization: Bearer` headers and return `401` immediately so the app pauses syncing and prompts for login.
@@ -184,16 +198,18 @@ scheduleRetry():
 ---
 
 ## 6. Error Handling
+
 | Scenario | HTTP | Response | Mobile Action |
 |----------|------|----------|---------------|
-| Invalid token | 401 | `{ "success": false, "msg": "Token expired" }` | Force logout + relogin.
-| Validation error | 422 | `{ "success": false, "errors": {"punches.0.job_id": ["Job required"]} }` | Highlight offending record, keep queued.
-| Duplicate punch | 200 | `duplicates` list populated | Mark local record as synced with "duplicate" badge.
-| Server error | 500 | `{ "success": false, "msg": "Unexpected error" }` | Leave in queue, exponential backoff.
+| Invalid token | 401 | `{ "success": false, "msg": "Token expired" }` | Force logout + relogin |
+| Validation error | 422 | `{ "success": false, "errors": {"punches.0.job_id": ["Job required"]} }` | Highlight offending record, keep queued |
+| Duplicate punch | 200 | `duplicates` list populated | Mark local record as synced with "duplicate" badge |
+| Server error | 500 | `{ "success": false, "msg": "Unexpected error" }` | Leave in queue, exponential backoff |
 
 ---
 
 ## 7. Testing & Tooling
+
 - Backend team provides Pest/PHPUnit tests in `tests/Feature/Mobile` using payloads above.
 - Postman collection (to be added under `SM_APP_backend_wiring/postman/`) mirrors every scenario: login, jobs, punches (success/duplicate/error), timesheet, disputes, crew status.
 - Mobile team reuses same collection for manual QA to guarantee parity.
@@ -201,6 +217,7 @@ scheduleRetry():
 ---
 
 ## 8. Implementation Checklist
+
 1. Migrate DB (GPS/device fields, indexes).
 2. Add `/api/mobile/*` routes + controllers/services per `API_WIRING.md`.
 3. Implement batch punch engine with per-record status.
@@ -212,6 +229,7 @@ scheduleRetry():
 ---
 
 ## 9. Handoff Notes
+
 - This spec + wiring files are the “SM_APP standalone section” referenced in planning documents.
 - Keep `external/` untouched; all new Laravel code lives in the main app tree when reintegrated.
 - Update this spec whenever payloads or endpoints change so mobile + backend teams stay aligned.

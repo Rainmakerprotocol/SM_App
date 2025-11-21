@@ -113,18 +113,22 @@ class AuthController extends StateNotifier<AuthState> {
   final AuthMetadataProvider _metadataCollector;
 
   Future<void> _restoreSession() async {
-    final session = await _tokenStorage.readSession();
-    if (session != null && session.expiresAt.isAfter(DateTime.now())) {
-      state = state.copyWith(
-        isAuthenticated: true,
-        isInitialized: true,
-        displayName: session.displayName,
-        session: session,
-      );
-      return;
+    try {
+      final session = await _tokenStorage.readSession();
+      if (session != null && session.expiresAt.isAfter(DateTime.now())) {
+        state = state.copyWith(
+          isAuthenticated: true,
+          isInitialized: true,
+          displayName: session.displayName,
+          session: session,
+        );
+        return;
+      }
+      await _tokenStorage.clearSession();
+    } catch (_) {
+      await _tokenStorage.clearSession();
     }
 
-    await _tokenStorage.clearSession();
     state = state.copyWith(
       isInitialized: true,
       isAuthenticated: false,

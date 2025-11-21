@@ -7,6 +7,8 @@ import '../../jobs/presentation/job_list_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../punch/presentation/punch_screen.dart';
 import '../../timesheet/presentation/timesheet_screen.dart';
+import '../../../offline/sync/sync_manager.dart';
+import '../../../offline/sync/sync_providers.dart';
 
 final _currentTabProvider = StateProvider<int>((ref) => 0);
 
@@ -52,11 +54,17 @@ class NavigationShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(_currentTabProvider);
     final controller = ref.read(authControllerProvider.notifier);
+    final syncManager = ref.read(syncManagerProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(_tabs[currentIndex].label),
         actions: [
+          IconButton(
+            tooltip: 'Sync now',
+            onPressed: () => syncManager.trigger(SyncTrigger.explicit),
+            icon: const Icon(Icons.sync),
+          ),
           IconButton(
             tooltip: 'Sign out',
             onPressed: controller.signOut,
