@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -74,11 +72,9 @@ class PunchRepository {
     // contract; backend can request additional fields (job item, cost code,
     // etc.) without changing call sites because everything flows through this
     // serialization step.
-    await syncQueueDao.enqueue(
-      SyncQueueCompanion.insert(
-        entityType: 'punch',
-        payload: jsonEncode(payload),
-      ),
+    await syncQueueDao.enqueuePunchPayload(
+      mobileUuid: punchId,
+      payload: payload,
     );
 
     return punchId;

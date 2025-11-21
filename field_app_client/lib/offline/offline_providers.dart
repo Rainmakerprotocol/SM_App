@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'database/app_database.dart';
@@ -57,6 +58,16 @@ class JobsDao {
   final AppDatabase _db;
 
   Future<void> upsert(JobsLocalCompanion entry) => _db.upsertJob(entry);
+
+  Future<List<JobsLocalData>> window({
+    required DateTime start,
+    required DateTime end,
+  }) => _db.jobsForWindow(start: start, end: end);
+
+  Stream<List<JobsLocalData>> watchWindow({
+    required DateTime start,
+    required DateTime end,
+  }) => _db.watchJobsForWindow(start: start, end: end);
 }
 
 final profileDaoProvider = Provider((ref) {
@@ -80,19 +91,47 @@ class SyncQueueDao {
   const SyncQueueDao(this._db);
   final AppDatabase _db;
 
-  Future<int> enqueue(SyncQueueCompanion entry) => _db.enqueuePayload(entry);
-  Future<List<QueuedPayload>> fetchPending({int limit = 20}) async {
+  Future<void> enqueuePunchPayload({
+    required String mobileUuid,
+    required Map<String, dynamic> payload,
+  }) async {
+    await _db.enqueuePayload(
+      SyncQueueCompanion.insert(
+        entityType: 'punch',
+        payload: jsonEncode(payload),
+        mobileUuid: Value(mobileUuid),
+      ),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
+
+  Future<bool> isPunchQueued(String mobileUuid) =>
+      _db.hasQueueEntry(entityType: 'punch', mobileUuid: mobileUuid);
+
+  Future<List<QueuedPayload>> fetchPending({
+    int limit = 20,
+    void Function()? onCorrupt,
+  }) async {
     final rows = await _db.oldestQueueItems(limit: limit);
-    return rows
-        .map(
-          (row) => QueuedPayload(
+    final payloads = <QueuedPayload>[];
+    for (final row in rows) {
+      try {
+        final decoded = jsonDecode(row.payload) as Map<String, dynamic>;
+        payloads.add(
+          QueuedPayload(
             id: row.id,
             entityType: row.entityType,
             attemptCount: row.attemptCount,
-            payload: jsonDecode(row.payload) as Map<String, dynamic>,
+            payload: decoded,
+            queueMobileUuid: row.mobileUuid,
           ),
-        )
-        .toList();
+        );
+      } catch (error) {
+        await _db.archiveCorruptQueueRow(row, error.toString());
+        onCorrupt?.call();
+      }
+    }
+    return payloads;
   }
 
   Future<void> deleteEntries(List<int> ids) async {
@@ -112,12 +151,15 @@ class QueuedPayload {
     required this.entityType,
     required this.attemptCount,
     required this.payload,
+    this.queueMobileUuid,
   });
 
   final int id;
   final String entityType;
   final int attemptCount;
   final Map<String, dynamic> payload;
+  final String? queueMobileUuid;
 
-  String? get mobileUuid => payload['mobile_uuid'] as String?;
+  String? get mobileUuid =>
+      queueMobileUuid ?? payload['mobile_uuid'] as String?;
 }

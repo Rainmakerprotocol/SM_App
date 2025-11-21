@@ -7,6 +7,7 @@ import 'package:field_app_client/modules/auth/domain/auth_models.dart';
 import 'package:field_app_client/offline/offline_providers.dart';
 import 'package:field_app_client/offline/offline_status.dart';
 import 'package:field_app_client/offline/sync/punch_sync_transport.dart';
+import 'package:field_app_client/offline/sync/queue_alerts.dart';
 import 'package:field_app_client/offline/sync/sync_feedback.dart';
 import 'package:field_app_client/offline/sync/sync_manager.dart';
 import 'package:field_app_client/offline/sync/sync_providers.dart';
@@ -36,7 +37,7 @@ void main() {
     );
   });
 
-  ProviderContainer _buildContainer({
+  ProviderContainer buildContainer({
     required SyncQueueDao queueDao,
     required PunchesDao punchesDao,
     required PunchSyncTransport transport,
@@ -86,7 +87,10 @@ void main() {
     ];
 
     when(
-      () => queueDao.fetchPending(limit: any(named: 'limit')),
+      () => queueDao.fetchPending(
+        limit: any(named: 'limit'),
+        onCorrupt: any(named: 'onCorrupt'),
+      ),
     ).thenAnswer((_) async => batches.removeAt(0));
     when(() => queueDao.deleteEntries(any())).thenAnswer((_) async {});
     when(() => punchesDao.markSynced(any())).thenAnswer((_) async {});
@@ -111,7 +115,7 @@ void main() {
       ),
     );
 
-    final container = _buildContainer(
+    final container = buildContainer(
       queueDao: queueDao,
       punchesDao: punchesDao,
       transport: transport,
@@ -150,7 +154,10 @@ void main() {
     ];
 
     when(
-      () => queueDao.fetchPending(limit: any(named: 'limit')),
+      () => queueDao.fetchPending(
+        limit: any(named: 'limit'),
+        onCorrupt: any(named: 'onCorrupt'),
+      ),
     ).thenAnswer((_) async => batches.removeAt(0));
     when(
       () => queueDao.recordAttempt(any(), error: any(named: 'error')),
@@ -183,7 +190,7 @@ void main() {
       ),
     );
 
-    final container = _buildContainer(
+    final container = buildContainer(
       queueDao: queueDao,
       punchesDao: punchesDao,
       transport: transport,
@@ -220,7 +227,10 @@ void main() {
     ];
 
     when(
-      () => queueDao.fetchPending(limit: any(named: 'limit')),
+      () => queueDao.fetchPending(
+        limit: any(named: 'limit'),
+        onCorrupt: any(named: 'onCorrupt'),
+      ),
     ).thenAnswer((_) async => batches.removeAt(0));
     when(() => queueDao.deleteEntries(any())).thenAnswer((_) async {});
     when(() => punchesDao.markSynced(any())).thenAnswer((_) async {});
@@ -251,7 +261,7 @@ void main() {
       ),
     );
 
-    final container = _buildContainer(
+    final container = buildContainer(
       queueDao: queueDao,
       punchesDao: punchesDao,
       transport: transport,
@@ -276,6 +286,80 @@ void main() {
     await manager.dispose();
   });
 
+  test('deduplicates local queue entries before hitting transport', () async {
+    final queueDao = _MockQueueDao();
+    final punchesDao = _MockPunchesDao();
+    final transport = _MockPunchSyncTransport();
+
+    final batches = <List<QueuedPayload>>[
+      [
+        const QueuedPayload(
+          id: 6,
+          entityType: 'punch',
+          attemptCount: 0,
+          payload: {'mobile_uuid': 'dup-id'},
+        ),
+        const QueuedPayload(
+          id: 7,
+          entityType: 'punch',
+          attemptCount: 0,
+          payload: {'mobile_uuid': 'dup-id'},
+        ),
+      ],
+      <QueuedPayload>[],
+    ];
+
+    when(
+      () => queueDao.fetchPending(
+        limit: any(named: 'limit'),
+        onCorrupt: any(named: 'onCorrupt'),
+      ),
+    ).thenAnswer((_) async => batches.removeAt(0));
+    when(() => queueDao.deleteEntries(any())).thenAnswer((_) async {});
+    when(() => punchesDao.markSynced(any())).thenAnswer((_) async {});
+    when(
+      () => punchesDao.markError(
+        any(),
+        errorCode: any(named: 'errorCode'),
+        errorMessage: any(named: 'errorMessage'),
+        requiresDispute: any(named: 'requiresDispute'),
+      ),
+    ).thenAnswer((_) async {});
+
+    var payloadCount = 0;
+    when(
+      () => transport.send(
+        session: any(named: 'session'),
+        payloads: any(named: 'payloads'),
+      ),
+    ).thenAnswer((invocation) async {
+      final payloads =
+          invocation.namedArguments[#payloads] as List<PunchPayload>;
+      payloadCount = payloads.length;
+      return const PunchSyncResponse(
+        processed: ['dup-id'],
+        duplicates: [],
+        errors: [],
+      );
+    });
+
+    final container = buildContainer(
+      queueDao: queueDao,
+      punchesDao: punchesDao,
+      transport: transport,
+    );
+    addTearDown(container.dispose);
+
+    final manager = container.read(syncManagerProvider);
+    await manager.trigger(SyncTrigger.explicit);
+
+    expect(payloadCount, 1);
+    verify(() => queueDao.deleteEntries([7])).called(1);
+    verify(() => queueDao.deleteEntries([6])).called(1);
+    verify(() => punchesDao.markSynced('dup-id')).called(1);
+    await manager.dispose();
+  });
+
   test('records validation error when server rejects payload', () async {
     final queueDao = _MockQueueDao();
     final punchesDao = _MockPunchesDao();
@@ -294,7 +378,10 @@ void main() {
     ];
 
     when(
-      () => queueDao.fetchPending(limit: any(named: 'limit')),
+      () => queueDao.fetchPending(
+        limit: any(named: 'limit'),
+        onCorrupt: any(named: 'onCorrupt'),
+      ),
     ).thenAnswer((_) async => batches.removeAt(0));
     when(() => queueDao.deleteEntries(any())).thenAnswer((_) async {});
     when(() => punchesDao.markSynced(any())).thenAnswer((_) async {});
@@ -325,7 +412,7 @@ void main() {
       ),
     );
 
-    final container = _buildContainer(
+    final container = buildContainer(
       queueDao: queueDao,
       punchesDao: punchesDao,
       transport: transport,
@@ -372,7 +459,10 @@ void main() {
       ];
 
       when(
-        () => queueDao.fetchPending(limit: any(named: 'limit')),
+        () => queueDao.fetchPending(
+          limit: any(named: 'limit'),
+          onCorrupt: any(named: 'onCorrupt'),
+        ),
       ).thenAnswer((_) async => batches.removeAt(0));
       when(() => queueDao.deleteEntries(any())).thenAnswer((_) async {});
       when(
@@ -406,7 +496,7 @@ void main() {
         ),
       );
 
-      final container = _buildContainer(
+      final container = buildContainer(
         queueDao: queueDao,
         punchesDao: punchesDao,
         transport: transport,
@@ -424,4 +514,38 @@ void main() {
       await manager.dispose();
     },
   );
+
+  test('emits queue alert when queue corruption detected', () async {
+    final queueDao = _MockQueueDao();
+    final punchesDao = _MockPunchesDao();
+    final transport = _MockPunchSyncTransport();
+
+    when(
+      () => queueDao.fetchPending(
+        limit: any(named: 'limit'),
+        onCorrupt: any(named: 'onCorrupt'),
+      ),
+    ).thenAnswer((invocation) async {
+      final onCorrupt =
+          invocation.namedArguments[#onCorrupt] as void Function()?;
+      onCorrupt?.call();
+      return <QueuedPayload>[];
+    });
+
+    final container = buildContainer(
+      queueDao: queueDao,
+      punchesDao: punchesDao,
+      transport: transport,
+    );
+    addTearDown(container.dispose);
+
+    final alertFuture = container.read(queueAlertStreamProvider.future);
+
+    final manager = container.read(syncManagerProvider);
+    await manager.trigger(SyncTrigger.explicit);
+    final alert = await alertFuture;
+
+    expect(alert.message, contains('queued punch'));
+    await manager.dispose();
+  });
 }

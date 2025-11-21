@@ -25,7 +25,7 @@ void main() {
     await db.close();
   });
 
-  PunchDraft _draft({String id = 'demo-id', DateTime? timestamp}) {
+  PunchDraft draft({String id = 'demo-id', DateTime? timestamp}) {
     return PunchDraft(
       punchId: id,
       employeeId: '12',
@@ -39,7 +39,7 @@ void main() {
   }
 
   test('recordPunch stores punch locally and enqueues payload', () async {
-    final savedId = await repository.recordPunch(_draft());
+    final savedId = await repository.recordPunch(draft());
     expect(savedId, 'demo-id');
 
     final punches = await db.getPendingPunches();
@@ -60,7 +60,7 @@ void main() {
     final sub = repository.watchPendingCount().listen(emissions.add);
 
     await Future<void>.delayed(const Duration(milliseconds: 10));
-    await repository.recordPunch(_draft(id: 'demo-2'));
+    await repository.recordPunch(draft(id: 'demo-2'));
     await Future<void>.delayed(const Duration(milliseconds: 10));
 
     expect(emissions.isNotEmpty, isTrue);
@@ -74,10 +74,10 @@ void main() {
 
     await Future<void>.delayed(const Duration(milliseconds: 10));
     await repository.recordPunch(
-      _draft(id: 'old', timestamp: DateTime(2025, 11, 21, 7, 0)),
+      draft(id: 'old', timestamp: DateTime(2025, 11, 21, 7, 0)),
     );
     await repository.recordPunch(
-      _draft(id: 'new', timestamp: DateTime(2025, 11, 21, 9, 30)),
+      draft(id: 'new', timestamp: DateTime(2025, 11, 21, 9, 30)),
     );
     await Future<void>.delayed(const Duration(milliseconds: 10));
 
@@ -86,5 +86,15 @@ void main() {
     expect(latest.count, 2);
     expect(latest.oldestTimestamp, DateTime(2025, 11, 21, 7, 0));
     await sub.cancel();
+  });
+
+  test('recordPunch skips enqueue when punch already pending', () async {
+    await repository.recordPunch(draft(id: 'dup-1'));
+    await repository.recordPunch(draft(id: 'dup-1'));
+
+    final queueRows = await db.oldestQueueItems(limit: 10);
+    expect(queueRows, hasLength(1));
+    final payload = jsonDecode(queueRows.first.payload) as Map<String, dynamic>;
+    expect(payload['mobile_uuid'], 'dup-1');
   });
 }

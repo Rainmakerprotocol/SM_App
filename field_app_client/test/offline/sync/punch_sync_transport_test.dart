@@ -14,7 +14,7 @@ void main() {
     displayName: 'Tester',
   );
 
-  PunchPayload _payload({String uuid = 'uuid-1'}) {
+  PunchPayload payload({String uuid = 'uuid-1'}) {
     return PunchPayload(
       queueId: 1,
       data: {
@@ -50,9 +50,9 @@ void main() {
       final response = await transport.send(
         session: session,
         payloads: [
-          _payload(uuid: 'uuid-1'),
-          _payload(uuid: 'uuid-2'),
-          _payload(uuid: 'uuid-3'),
+          payload(uuid: 'uuid-1'),
+          payload(uuid: 'uuid-2'),
+          payload(uuid: 'uuid-3'),
         ],
       );
 
@@ -80,7 +80,7 @@ void main() {
     );
 
     expect(
-      () => transport.send(session: session, payloads: [_payload()]),
+      () => transport.send(session: session, payloads: [payload()]),
       throwsA(
         isA<PunchSyncTransportException>().having(
           (e) => e.code,
@@ -102,7 +102,7 @@ void main() {
     );
 
     expect(
-      () => transport.send(session: session, payloads: [_payload()]),
+      () => transport.send(session: session, payloads: [payload()]),
       throwsA(
         isA<PunchSyncTransportException>().having(
           (e) => e.code,

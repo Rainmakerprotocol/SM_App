@@ -14,7 +14,7 @@ void main() {
     displayName: 'Tester',
   );
 
-  PunchPayload _payload(Map<String, dynamic> data) =>
+  PunchPayload payload(Map<String, dynamic> data) =>
       PunchPayload(queueId: 1, data: data);
 
   group('RestPunchSyncTransport', () {
@@ -46,13 +46,13 @@ void main() {
       final response = await transport.send(
         session: session,
         payloads: [
-          _payload({
+          payload({
             'mobile_uuid': 'uuid-1',
             'employee_id': '99',
             'device_id': 'device-1',
           }),
-          _payload({'mobile_uuid': 'uuid-2'}),
-          _payload({'mobile_uuid': 'uuid-3'}),
+          payload({'mobile_uuid': 'uuid-2'}),
+          payload({'mobile_uuid': 'uuid-3'}),
         ],
       );
 
@@ -78,14 +78,14 @@ void main() {
     test(
       'throws PunchSyncTransportException with error code mappings',
       () async {
-        Future<void> _expectThrow(int status, String code) async {
+        Future<void> expectThrow(int status, String code) async {
           final client = MockClient((_) async => http.Response('{}', status));
           final transport = RestPunchSyncTransport(
             client: client,
             baseUrl: 'https://api.example.com',
           );
           expect(
-            () => transport.send(session: session, payloads: [_payload({})]),
+            () => transport.send(session: session, payloads: [payload({})]),
             throwsA(
               isA<PunchSyncTransportException>().having(
                 (e) => e.code,
@@ -96,9 +96,9 @@ void main() {
           );
         }
 
-        await _expectThrow(401, 'unauthorized');
-        await _expectThrow(422, 'validation_error');
-        await _expectThrow(500, 'server_error');
+        await expectThrow(401, 'unauthorized');
+        await expectThrow(422, 'validation_error');
+        await expectThrow(500, 'server_error');
       },
     );
   });

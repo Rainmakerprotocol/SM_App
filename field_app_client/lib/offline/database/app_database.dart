@@ -36,15 +36,16 @@ class PunchesLocal extends Table {
 
 class JobsLocal extends Table {
   TextColumn get jobId => text()();
-  TextColumn get code => text()();
-  TextColumn get description => text()();
-  TextColumn get location => text().nullable()();
+  TextColumn get serviceId => text()();
+  TextColumn get customerName => text()();
+  TextColumn get address => text().nullable()();
+  DateTimeColumn get scheduledDate => dateTime()();
   TextColumn get foremanId => text().nullable()();
-  IntColumn get crewSize => integer().nullable()();
-  DateTimeColumn get windowStart => dateTime().nullable()();
-  DateTimeColumn get windowEnd => dateTime().nullable()();
-  BoolColumn get hasOpenItems => boolean().withDefault(const Constant(false))();
-  DateTimeColumn get updatedAt => dateTime().nullable()();
+  TextColumn get crewListJson => text().withDefault(const Constant('[]'))();
+  TextColumn get crewHash => text().nullable()();
+  DateTimeColumn get lastUpdated =>
+      dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {jobId};
@@ -73,22 +74,63 @@ class SyncQueue extends Table {
   TextColumn get lastError => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get lastAttemptAt => dateTime().nullable()();
+  TextColumn get mobileUuid => text().nullable()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {entityType, mobileUuid},
+  ];
 }
 
-@DriftDatabase(tables: [PunchesLocal, JobsLocal, ProfileLocal, SyncQueue])
+class CorruptQueueEntries extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get originalQueueId => integer().nullable()();
+  TextColumn get entityType => text().nullable()();
+  TextColumn get payload => text().nullable()();
+  TextColumn get error => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+@DriftDatabase(
+  tables: [
+    PunchesLocal,
+    JobsLocal,
+    ProfileLocal,
+    SyncQueue,
+    CorruptQueueEntries,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (migrator) async {
+      await migrator.createAll();
+      await _ensureJobsLocalIndexes();
+    },
     onUpgrade: (migrator, from, to) async {
       if (from < 2) {
         await migrator.addColumn(punchesLocal, punchesLocal.requiresDispute);
+      }
+      if (from < 3) {
+        await migrator.addColumn(
+          syncQueue,
+          syncQueue.mobileUuid as GeneratedColumn,
+        );
+      }
+      if (from < 4) {
+        await migrator.createTable(corruptQueueEntries);
+      }
+      if (from < 5) {
+        await customStatement('DROP TABLE IF EXISTS jobs_local');
+        await migrator.createTable(jobsLocal);
+        await _ensureJobsLocalIndexes();
       }
     },
   );
@@ -205,8 +247,26 @@ class AppDatabase extends _$AppDatabase {
     return query.get();
   }
 
-  Future<int> enqueuePayload(SyncQueueCompanion entry) {
-    return into(syncQueue).insert(entry);
+  Future<int> enqueuePayload(
+    SyncQueueCompanion entry, {
+    InsertMode mode = InsertMode.insert,
+  }) {
+    return into(syncQueue).insert(entry, mode: mode);
+  }
+
+  Future<void> archiveCorruptQueueRow(SyncQueueData row, String error) async {
+    await batch((batch) {
+      batch.insert(
+        corruptQueueEntries,
+        CorruptQueueEntriesCompanion.insert(
+          originalQueueId: Value(row.id),
+          entityType: Value(row.entityType),
+          payload: Value(row.payload),
+          error: Value(error),
+        ),
+      );
+      batch.deleteWhere(syncQueue, (tbl) => tbl.id.equals(row.id));
+    });
   }
 
   Future<int> incrementQueueAttempt(int id, {String? error}) async {
@@ -230,12 +290,53 @@ class AppDatabase extends _$AppDatabase {
     return (delete(syncQueue)..where((tbl) => tbl.id.equals(id))).go();
   }
 
+  Future<bool> hasQueueEntry({
+    required String entityType,
+    required String mobileUuid,
+  }) async {
+    final query = select(syncQueue)
+      ..where(
+        (tbl) =>
+            tbl.entityType.equals(entityType) &
+            tbl.mobileUuid.equals(mobileUuid),
+      )
+      ..limit(1);
+    final result = await query.getSingleOrNull();
+    return result != null;
+  }
+
   Future<void> upsertJob(JobsLocalCompanion entry) {
     return into(jobsLocal).insertOnConflictUpdate(entry);
   }
 
+  Future<List<JobsLocalData>> jobsForWindow({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    final query = (select(jobsLocal)
+      ..where((tbl) => tbl.scheduledDate.isBetweenValues(start, end))
+      ..orderBy([(tbl) => OrderingTerm(expression: tbl.scheduledDate)]));
+    return query.get();
+  }
+
+  Stream<List<JobsLocalData>> watchJobsForWindow({
+    required DateTime start,
+    required DateTime end,
+  }) {
+    final query = (select(jobsLocal)
+      ..where((tbl) => tbl.scheduledDate.isBetweenValues(start, end))
+      ..orderBy([(tbl) => OrderingTerm(expression: tbl.scheduledDate)]));
+    return query.watch();
+  }
+
   Future<void> upsertProfile(ProfileLocalCompanion entry) {
     return into(profileLocal).insertOnConflictUpdate(entry);
+  }
+
+  Future<void> _ensureJobsLocalIndexes() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS jobs_local_scheduled_date_idx ON jobs_local (scheduled_date)',
+    );
   }
 }
 

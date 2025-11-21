@@ -1035,37 +1035,51 @@ class $JobsLocalTable extends JobsLocal
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  static const VerificationMeta _serviceIdMeta = const VerificationMeta(
+    'serviceId',
+  );
   @override
-  late final GeneratedColumn<String> code = GeneratedColumn<String>(
-    'code',
+  late final GeneratedColumn<String> serviceId = GeneratedColumn<String>(
+    'service_id',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _descriptionMeta = const VerificationMeta(
-    'description',
+  static const VerificationMeta _customerNameMeta = const VerificationMeta(
+    'customerName',
   );
   @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>(
-    'description',
+  late final GeneratedColumn<String> customerName = GeneratedColumn<String>(
+    'customer_name',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _locationMeta = const VerificationMeta(
-    'location',
+  static const VerificationMeta _addressMeta = const VerificationMeta(
+    'address',
   );
   @override
-  late final GeneratedColumn<String> location = GeneratedColumn<String>(
-    'location',
+  late final GeneratedColumn<String> address = GeneratedColumn<String>(
+    'address',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _scheduledDateMeta = const VerificationMeta(
+    'scheduledDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> scheduledDate =
+      GeneratedColumn<DateTime>(
+        'scheduled_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
   static const VerificationMeta _foremanIdMeta = const VerificationMeta(
     'foremanId',
   );
@@ -1077,77 +1091,66 @@ class $JobsLocalTable extends JobsLocal
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _crewSizeMeta = const VerificationMeta(
-    'crewSize',
+  static const VerificationMeta _crewListJsonMeta = const VerificationMeta(
+    'crewListJson',
   );
   @override
-  late final GeneratedColumn<int> crewSize = GeneratedColumn<int>(
-    'crew_size',
+  late final GeneratedColumn<String> crewListJson = GeneratedColumn<String>(
+    'crew_list_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _crewHashMeta = const VerificationMeta(
+    'crewHash',
+  );
+  @override
+  late final GeneratedColumn<String> crewHash = GeneratedColumn<String>(
+    'crew_hash',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _windowStartMeta = const VerificationMeta(
-    'windowStart',
+  static const VerificationMeta _lastUpdatedMeta = const VerificationMeta(
+    'lastUpdated',
   );
   @override
-  late final GeneratedColumn<DateTime> windowStart = GeneratedColumn<DateTime>(
-    'window_start',
+  late final GeneratedColumn<DateTime> lastUpdated = GeneratedColumn<DateTime>(
+    'last_updated',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
   );
-  static const VerificationMeta _windowEndMeta = const VerificationMeta(
-    'windowEnd',
-  );
+  static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
   @override
-  late final GeneratedColumn<DateTime> windowEnd = GeneratedColumn<DateTime>(
-    'window_end',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _hasOpenItemsMeta = const VerificationMeta(
-    'hasOpenItems',
-  );
-  @override
-  late final GeneratedColumn<bool> hasOpenItems = GeneratedColumn<bool>(
-    'has_open_items',
+  late final GeneratedColumn<bool> synced = GeneratedColumn<bool>(
+    'synced',
     aliasedName,
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("has_open_items" IN (0, 1))',
+      'CHECK ("synced" IN (0, 1))',
     ),
     defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
   );
   @override
   List<GeneratedColumn> get $columns => [
     jobId,
-    code,
-    description,
-    location,
+    serviceId,
+    customerName,
+    address,
+    scheduledDate,
     foremanId,
-    crewSize,
-    windowStart,
-    windowEnd,
-    hasOpenItems,
-    updatedAt,
+    crewListJson,
+    crewHash,
+    lastUpdated,
+    synced,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1169,30 +1172,41 @@ class $JobsLocalTable extends JobsLocal
     } else if (isInserting) {
       context.missing(_jobIdMeta);
     }
-    if (data.containsKey('code')) {
+    if (data.containsKey('service_id')) {
       context.handle(
-        _codeMeta,
-        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+        _serviceIdMeta,
+        serviceId.isAcceptableOrUnknown(data['service_id']!, _serviceIdMeta),
       );
     } else if (isInserting) {
-      context.missing(_codeMeta);
+      context.missing(_serviceIdMeta);
     }
-    if (data.containsKey('description')) {
+    if (data.containsKey('customer_name')) {
       context.handle(
-        _descriptionMeta,
-        description.isAcceptableOrUnknown(
-          data['description']!,
-          _descriptionMeta,
+        _customerNameMeta,
+        customerName.isAcceptableOrUnknown(
+          data['customer_name']!,
+          _customerNameMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_descriptionMeta);
+      context.missing(_customerNameMeta);
     }
-    if (data.containsKey('location')) {
+    if (data.containsKey('address')) {
       context.handle(
-        _locationMeta,
-        location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+        _addressMeta,
+        address.isAcceptableOrUnknown(data['address']!, _addressMeta),
       );
+    }
+    if (data.containsKey('scheduled_date')) {
+      context.handle(
+        _scheduledDateMeta,
+        scheduledDate.isAcceptableOrUnknown(
+          data['scheduled_date']!,
+          _scheduledDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_scheduledDateMeta);
     }
     if (data.containsKey('foreman_id')) {
       context.handle(
@@ -1200,40 +1214,34 @@ class $JobsLocalTable extends JobsLocal
         foremanId.isAcceptableOrUnknown(data['foreman_id']!, _foremanIdMeta),
       );
     }
-    if (data.containsKey('crew_size')) {
+    if (data.containsKey('crew_list_json')) {
       context.handle(
-        _crewSizeMeta,
-        crewSize.isAcceptableOrUnknown(data['crew_size']!, _crewSizeMeta),
-      );
-    }
-    if (data.containsKey('window_start')) {
-      context.handle(
-        _windowStartMeta,
-        windowStart.isAcceptableOrUnknown(
-          data['window_start']!,
-          _windowStartMeta,
+        _crewListJsonMeta,
+        crewListJson.isAcceptableOrUnknown(
+          data['crew_list_json']!,
+          _crewListJsonMeta,
         ),
       );
     }
-    if (data.containsKey('window_end')) {
+    if (data.containsKey('crew_hash')) {
       context.handle(
-        _windowEndMeta,
-        windowEnd.isAcceptableOrUnknown(data['window_end']!, _windowEndMeta),
+        _crewHashMeta,
+        crewHash.isAcceptableOrUnknown(data['crew_hash']!, _crewHashMeta),
       );
     }
-    if (data.containsKey('has_open_items')) {
+    if (data.containsKey('last_updated')) {
       context.handle(
-        _hasOpenItemsMeta,
-        hasOpenItems.isAcceptableOrUnknown(
-          data['has_open_items']!,
-          _hasOpenItemsMeta,
+        _lastUpdatedMeta,
+        lastUpdated.isAcceptableOrUnknown(
+          data['last_updated']!,
+          _lastUpdatedMeta,
         ),
       );
     }
-    if (data.containsKey('updated_at')) {
+    if (data.containsKey('synced')) {
       context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+        _syncedMeta,
+        synced.isAcceptableOrUnknown(data['synced']!, _syncedMeta),
       );
     }
     return context;
@@ -1249,42 +1257,42 @@ class $JobsLocalTable extends JobsLocal
         DriftSqlType.string,
         data['${effectivePrefix}job_id'],
       )!,
-      code: attachedDatabase.typeMapping.read(
+      serviceId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}code'],
+        data['${effectivePrefix}service_id'],
       )!,
-      description: attachedDatabase.typeMapping.read(
+      customerName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}description'],
+        data['${effectivePrefix}customer_name'],
       )!,
-      location: attachedDatabase.typeMapping.read(
+      address: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}location'],
+        data['${effectivePrefix}address'],
       ),
+      scheduledDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}scheduled_date'],
+      )!,
       foremanId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}foreman_id'],
       ),
-      crewSize: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}crew_size'],
-      ),
-      windowStart: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}window_start'],
-      ),
-      windowEnd: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}window_end'],
-      ),
-      hasOpenItems: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}has_open_items'],
+      crewListJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}crew_list_json'],
       )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
+      crewHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}crew_hash'],
       ),
+      lastUpdated: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_updated'],
+      )!,
+      synced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}synced'],
+      )!,
     );
   }
 
@@ -1296,79 +1304,67 @@ class $JobsLocalTable extends JobsLocal
 
 class JobsLocalData extends DataClass implements Insertable<JobsLocalData> {
   final String jobId;
-  final String code;
-  final String description;
-  final String? location;
+  final String serviceId;
+  final String customerName;
+  final String? address;
+  final DateTime scheduledDate;
   final String? foremanId;
-  final int? crewSize;
-  final DateTime? windowStart;
-  final DateTime? windowEnd;
-  final bool hasOpenItems;
-  final DateTime? updatedAt;
+  final String crewListJson;
+  final String? crewHash;
+  final DateTime lastUpdated;
+  final bool synced;
   const JobsLocalData({
     required this.jobId,
-    required this.code,
-    required this.description,
-    this.location,
+    required this.serviceId,
+    required this.customerName,
+    this.address,
+    required this.scheduledDate,
     this.foremanId,
-    this.crewSize,
-    this.windowStart,
-    this.windowEnd,
-    required this.hasOpenItems,
-    this.updatedAt,
+    required this.crewListJson,
+    this.crewHash,
+    required this.lastUpdated,
+    required this.synced,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['job_id'] = Variable<String>(jobId);
-    map['code'] = Variable<String>(code);
-    map['description'] = Variable<String>(description);
-    if (!nullToAbsent || location != null) {
-      map['location'] = Variable<String>(location);
+    map['service_id'] = Variable<String>(serviceId);
+    map['customer_name'] = Variable<String>(customerName);
+    if (!nullToAbsent || address != null) {
+      map['address'] = Variable<String>(address);
     }
+    map['scheduled_date'] = Variable<DateTime>(scheduledDate);
     if (!nullToAbsent || foremanId != null) {
       map['foreman_id'] = Variable<String>(foremanId);
     }
-    if (!nullToAbsent || crewSize != null) {
-      map['crew_size'] = Variable<int>(crewSize);
+    map['crew_list_json'] = Variable<String>(crewListJson);
+    if (!nullToAbsent || crewHash != null) {
+      map['crew_hash'] = Variable<String>(crewHash);
     }
-    if (!nullToAbsent || windowStart != null) {
-      map['window_start'] = Variable<DateTime>(windowStart);
-    }
-    if (!nullToAbsent || windowEnd != null) {
-      map['window_end'] = Variable<DateTime>(windowEnd);
-    }
-    map['has_open_items'] = Variable<bool>(hasOpenItems);
-    if (!nullToAbsent || updatedAt != null) {
-      map['updated_at'] = Variable<DateTime>(updatedAt);
-    }
+    map['last_updated'] = Variable<DateTime>(lastUpdated);
+    map['synced'] = Variable<bool>(synced);
     return map;
   }
 
   JobsLocalCompanion toCompanion(bool nullToAbsent) {
     return JobsLocalCompanion(
       jobId: Value(jobId),
-      code: Value(code),
-      description: Value(description),
-      location: location == null && nullToAbsent
+      serviceId: Value(serviceId),
+      customerName: Value(customerName),
+      address: address == null && nullToAbsent
           ? const Value.absent()
-          : Value(location),
+          : Value(address),
+      scheduledDate: Value(scheduledDate),
       foremanId: foremanId == null && nullToAbsent
           ? const Value.absent()
           : Value(foremanId),
-      crewSize: crewSize == null && nullToAbsent
+      crewListJson: Value(crewListJson),
+      crewHash: crewHash == null && nullToAbsent
           ? const Value.absent()
-          : Value(crewSize),
-      windowStart: windowStart == null && nullToAbsent
-          ? const Value.absent()
-          : Value(windowStart),
-      windowEnd: windowEnd == null && nullToAbsent
-          ? const Value.absent()
-          : Value(windowEnd),
-      hasOpenItems: Value(hasOpenItems),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
+          : Value(crewHash),
+      lastUpdated: Value(lastUpdated),
+      synced: Value(synced),
     );
   }
 
@@ -1379,15 +1375,15 @@ class JobsLocalData extends DataClass implements Insertable<JobsLocalData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return JobsLocalData(
       jobId: serializer.fromJson<String>(json['jobId']),
-      code: serializer.fromJson<String>(json['code']),
-      description: serializer.fromJson<String>(json['description']),
-      location: serializer.fromJson<String?>(json['location']),
+      serviceId: serializer.fromJson<String>(json['serviceId']),
+      customerName: serializer.fromJson<String>(json['customerName']),
+      address: serializer.fromJson<String?>(json['address']),
+      scheduledDate: serializer.fromJson<DateTime>(json['scheduledDate']),
       foremanId: serializer.fromJson<String?>(json['foremanId']),
-      crewSize: serializer.fromJson<int?>(json['crewSize']),
-      windowStart: serializer.fromJson<DateTime?>(json['windowStart']),
-      windowEnd: serializer.fromJson<DateTime?>(json['windowEnd']),
-      hasOpenItems: serializer.fromJson<bool>(json['hasOpenItems']),
-      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+      crewListJson: serializer.fromJson<String>(json['crewListJson']),
+      crewHash: serializer.fromJson<String?>(json['crewHash']),
+      lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
+      synced: serializer.fromJson<bool>(json['synced']),
     );
   }
   @override
@@ -1395,59 +1391,61 @@ class JobsLocalData extends DataClass implements Insertable<JobsLocalData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'jobId': serializer.toJson<String>(jobId),
-      'code': serializer.toJson<String>(code),
-      'description': serializer.toJson<String>(description),
-      'location': serializer.toJson<String?>(location),
+      'serviceId': serializer.toJson<String>(serviceId),
+      'customerName': serializer.toJson<String>(customerName),
+      'address': serializer.toJson<String?>(address),
+      'scheduledDate': serializer.toJson<DateTime>(scheduledDate),
       'foremanId': serializer.toJson<String?>(foremanId),
-      'crewSize': serializer.toJson<int?>(crewSize),
-      'windowStart': serializer.toJson<DateTime?>(windowStart),
-      'windowEnd': serializer.toJson<DateTime?>(windowEnd),
-      'hasOpenItems': serializer.toJson<bool>(hasOpenItems),
-      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+      'crewListJson': serializer.toJson<String>(crewListJson),
+      'crewHash': serializer.toJson<String?>(crewHash),
+      'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
+      'synced': serializer.toJson<bool>(synced),
     };
   }
 
   JobsLocalData copyWith({
     String? jobId,
-    String? code,
-    String? description,
-    Value<String?> location = const Value.absent(),
+    String? serviceId,
+    String? customerName,
+    Value<String?> address = const Value.absent(),
+    DateTime? scheduledDate,
     Value<String?> foremanId = const Value.absent(),
-    Value<int?> crewSize = const Value.absent(),
-    Value<DateTime?> windowStart = const Value.absent(),
-    Value<DateTime?> windowEnd = const Value.absent(),
-    bool? hasOpenItems,
-    Value<DateTime?> updatedAt = const Value.absent(),
+    String? crewListJson,
+    Value<String?> crewHash = const Value.absent(),
+    DateTime? lastUpdated,
+    bool? synced,
   }) => JobsLocalData(
     jobId: jobId ?? this.jobId,
-    code: code ?? this.code,
-    description: description ?? this.description,
-    location: location.present ? location.value : this.location,
+    serviceId: serviceId ?? this.serviceId,
+    customerName: customerName ?? this.customerName,
+    address: address.present ? address.value : this.address,
+    scheduledDate: scheduledDate ?? this.scheduledDate,
     foremanId: foremanId.present ? foremanId.value : this.foremanId,
-    crewSize: crewSize.present ? crewSize.value : this.crewSize,
-    windowStart: windowStart.present ? windowStart.value : this.windowStart,
-    windowEnd: windowEnd.present ? windowEnd.value : this.windowEnd,
-    hasOpenItems: hasOpenItems ?? this.hasOpenItems,
-    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    crewListJson: crewListJson ?? this.crewListJson,
+    crewHash: crewHash.present ? crewHash.value : this.crewHash,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+    synced: synced ?? this.synced,
   );
   JobsLocalData copyWithCompanion(JobsLocalCompanion data) {
     return JobsLocalData(
       jobId: data.jobId.present ? data.jobId.value : this.jobId,
-      code: data.code.present ? data.code.value : this.code,
-      description: data.description.present
-          ? data.description.value
-          : this.description,
-      location: data.location.present ? data.location.value : this.location,
+      serviceId: data.serviceId.present ? data.serviceId.value : this.serviceId,
+      customerName: data.customerName.present
+          ? data.customerName.value
+          : this.customerName,
+      address: data.address.present ? data.address.value : this.address,
+      scheduledDate: data.scheduledDate.present
+          ? data.scheduledDate.value
+          : this.scheduledDate,
       foremanId: data.foremanId.present ? data.foremanId.value : this.foremanId,
-      crewSize: data.crewSize.present ? data.crewSize.value : this.crewSize,
-      windowStart: data.windowStart.present
-          ? data.windowStart.value
-          : this.windowStart,
-      windowEnd: data.windowEnd.present ? data.windowEnd.value : this.windowEnd,
-      hasOpenItems: data.hasOpenItems.present
-          ? data.hasOpenItems.value
-          : this.hasOpenItems,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      crewListJson: data.crewListJson.present
+          ? data.crewListJson.value
+          : this.crewListJson,
+      crewHash: data.crewHash.present ? data.crewHash.value : this.crewHash,
+      lastUpdated: data.lastUpdated.present
+          ? data.lastUpdated.value
+          : this.lastUpdated,
+      synced: data.synced.present ? data.synced.value : this.synced,
     );
   }
 
@@ -1455,15 +1453,15 @@ class JobsLocalData extends DataClass implements Insertable<JobsLocalData> {
   String toString() {
     return (StringBuffer('JobsLocalData(')
           ..write('jobId: $jobId, ')
-          ..write('code: $code, ')
-          ..write('description: $description, ')
-          ..write('location: $location, ')
+          ..write('serviceId: $serviceId, ')
+          ..write('customerName: $customerName, ')
+          ..write('address: $address, ')
+          ..write('scheduledDate: $scheduledDate, ')
           ..write('foremanId: $foremanId, ')
-          ..write('crewSize: $crewSize, ')
-          ..write('windowStart: $windowStart, ')
-          ..write('windowEnd: $windowEnd, ')
-          ..write('hasOpenItems: $hasOpenItems, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('crewListJson: $crewListJson, ')
+          ..write('crewHash: $crewHash, ')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('synced: $synced')
           ..write(')'))
         .toString();
   }
@@ -1471,124 +1469,125 @@ class JobsLocalData extends DataClass implements Insertable<JobsLocalData> {
   @override
   int get hashCode => Object.hash(
     jobId,
-    code,
-    description,
-    location,
+    serviceId,
+    customerName,
+    address,
+    scheduledDate,
     foremanId,
-    crewSize,
-    windowStart,
-    windowEnd,
-    hasOpenItems,
-    updatedAt,
+    crewListJson,
+    crewHash,
+    lastUpdated,
+    synced,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is JobsLocalData &&
           other.jobId == this.jobId &&
-          other.code == this.code &&
-          other.description == this.description &&
-          other.location == this.location &&
+          other.serviceId == this.serviceId &&
+          other.customerName == this.customerName &&
+          other.address == this.address &&
+          other.scheduledDate == this.scheduledDate &&
           other.foremanId == this.foremanId &&
-          other.crewSize == this.crewSize &&
-          other.windowStart == this.windowStart &&
-          other.windowEnd == this.windowEnd &&
-          other.hasOpenItems == this.hasOpenItems &&
-          other.updatedAt == this.updatedAt);
+          other.crewListJson == this.crewListJson &&
+          other.crewHash == this.crewHash &&
+          other.lastUpdated == this.lastUpdated &&
+          other.synced == this.synced);
 }
 
 class JobsLocalCompanion extends UpdateCompanion<JobsLocalData> {
   final Value<String> jobId;
-  final Value<String> code;
-  final Value<String> description;
-  final Value<String?> location;
+  final Value<String> serviceId;
+  final Value<String> customerName;
+  final Value<String?> address;
+  final Value<DateTime> scheduledDate;
   final Value<String?> foremanId;
-  final Value<int?> crewSize;
-  final Value<DateTime?> windowStart;
-  final Value<DateTime?> windowEnd;
-  final Value<bool> hasOpenItems;
-  final Value<DateTime?> updatedAt;
+  final Value<String> crewListJson;
+  final Value<String?> crewHash;
+  final Value<DateTime> lastUpdated;
+  final Value<bool> synced;
   final Value<int> rowid;
   const JobsLocalCompanion({
     this.jobId = const Value.absent(),
-    this.code = const Value.absent(),
-    this.description = const Value.absent(),
-    this.location = const Value.absent(),
+    this.serviceId = const Value.absent(),
+    this.customerName = const Value.absent(),
+    this.address = const Value.absent(),
+    this.scheduledDate = const Value.absent(),
     this.foremanId = const Value.absent(),
-    this.crewSize = const Value.absent(),
-    this.windowStart = const Value.absent(),
-    this.windowEnd = const Value.absent(),
-    this.hasOpenItems = const Value.absent(),
-    this.updatedAt = const Value.absent(),
+    this.crewListJson = const Value.absent(),
+    this.crewHash = const Value.absent(),
+    this.lastUpdated = const Value.absent(),
+    this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   JobsLocalCompanion.insert({
     required String jobId,
-    required String code,
-    required String description,
-    this.location = const Value.absent(),
+    required String serviceId,
+    required String customerName,
+    this.address = const Value.absent(),
+    required DateTime scheduledDate,
     this.foremanId = const Value.absent(),
-    this.crewSize = const Value.absent(),
-    this.windowStart = const Value.absent(),
-    this.windowEnd = const Value.absent(),
-    this.hasOpenItems = const Value.absent(),
-    this.updatedAt = const Value.absent(),
+    this.crewListJson = const Value.absent(),
+    this.crewHash = const Value.absent(),
+    this.lastUpdated = const Value.absent(),
+    this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : jobId = Value(jobId),
-       code = Value(code),
-       description = Value(description);
+       serviceId = Value(serviceId),
+       customerName = Value(customerName),
+       scheduledDate = Value(scheduledDate);
   static Insertable<JobsLocalData> custom({
     Expression<String>? jobId,
-    Expression<String>? code,
-    Expression<String>? description,
-    Expression<String>? location,
+    Expression<String>? serviceId,
+    Expression<String>? customerName,
+    Expression<String>? address,
+    Expression<DateTime>? scheduledDate,
     Expression<String>? foremanId,
-    Expression<int>? crewSize,
-    Expression<DateTime>? windowStart,
-    Expression<DateTime>? windowEnd,
-    Expression<bool>? hasOpenItems,
-    Expression<DateTime>? updatedAt,
+    Expression<String>? crewListJson,
+    Expression<String>? crewHash,
+    Expression<DateTime>? lastUpdated,
+    Expression<bool>? synced,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (jobId != null) 'job_id': jobId,
-      if (code != null) 'code': code,
-      if (description != null) 'description': description,
-      if (location != null) 'location': location,
+      if (serviceId != null) 'service_id': serviceId,
+      if (customerName != null) 'customer_name': customerName,
+      if (address != null) 'address': address,
+      if (scheduledDate != null) 'scheduled_date': scheduledDate,
       if (foremanId != null) 'foreman_id': foremanId,
-      if (crewSize != null) 'crew_size': crewSize,
-      if (windowStart != null) 'window_start': windowStart,
-      if (windowEnd != null) 'window_end': windowEnd,
-      if (hasOpenItems != null) 'has_open_items': hasOpenItems,
-      if (updatedAt != null) 'updated_at': updatedAt,
+      if (crewListJson != null) 'crew_list_json': crewListJson,
+      if (crewHash != null) 'crew_hash': crewHash,
+      if (lastUpdated != null) 'last_updated': lastUpdated,
+      if (synced != null) 'synced': synced,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   JobsLocalCompanion copyWith({
     Value<String>? jobId,
-    Value<String>? code,
-    Value<String>? description,
-    Value<String?>? location,
+    Value<String>? serviceId,
+    Value<String>? customerName,
+    Value<String?>? address,
+    Value<DateTime>? scheduledDate,
     Value<String?>? foremanId,
-    Value<int?>? crewSize,
-    Value<DateTime?>? windowStart,
-    Value<DateTime?>? windowEnd,
-    Value<bool>? hasOpenItems,
-    Value<DateTime?>? updatedAt,
+    Value<String>? crewListJson,
+    Value<String?>? crewHash,
+    Value<DateTime>? lastUpdated,
+    Value<bool>? synced,
     Value<int>? rowid,
   }) {
     return JobsLocalCompanion(
       jobId: jobId ?? this.jobId,
-      code: code ?? this.code,
-      description: description ?? this.description,
-      location: location ?? this.location,
+      serviceId: serviceId ?? this.serviceId,
+      customerName: customerName ?? this.customerName,
+      address: address ?? this.address,
+      scheduledDate: scheduledDate ?? this.scheduledDate,
       foremanId: foremanId ?? this.foremanId,
-      crewSize: crewSize ?? this.crewSize,
-      windowStart: windowStart ?? this.windowStart,
-      windowEnd: windowEnd ?? this.windowEnd,
-      hasOpenItems: hasOpenItems ?? this.hasOpenItems,
-      updatedAt: updatedAt ?? this.updatedAt,
+      crewListJson: crewListJson ?? this.crewListJson,
+      crewHash: crewHash ?? this.crewHash,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      synced: synced ?? this.synced,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1599,32 +1598,32 @@ class JobsLocalCompanion extends UpdateCompanion<JobsLocalData> {
     if (jobId.present) {
       map['job_id'] = Variable<String>(jobId.value);
     }
-    if (code.present) {
-      map['code'] = Variable<String>(code.value);
+    if (serviceId.present) {
+      map['service_id'] = Variable<String>(serviceId.value);
     }
-    if (description.present) {
-      map['description'] = Variable<String>(description.value);
+    if (customerName.present) {
+      map['customer_name'] = Variable<String>(customerName.value);
     }
-    if (location.present) {
-      map['location'] = Variable<String>(location.value);
+    if (address.present) {
+      map['address'] = Variable<String>(address.value);
+    }
+    if (scheduledDate.present) {
+      map['scheduled_date'] = Variable<DateTime>(scheduledDate.value);
     }
     if (foremanId.present) {
       map['foreman_id'] = Variable<String>(foremanId.value);
     }
-    if (crewSize.present) {
-      map['crew_size'] = Variable<int>(crewSize.value);
+    if (crewListJson.present) {
+      map['crew_list_json'] = Variable<String>(crewListJson.value);
     }
-    if (windowStart.present) {
-      map['window_start'] = Variable<DateTime>(windowStart.value);
+    if (crewHash.present) {
+      map['crew_hash'] = Variable<String>(crewHash.value);
     }
-    if (windowEnd.present) {
-      map['window_end'] = Variable<DateTime>(windowEnd.value);
+    if (lastUpdated.present) {
+      map['last_updated'] = Variable<DateTime>(lastUpdated.value);
     }
-    if (hasOpenItems.present) {
-      map['has_open_items'] = Variable<bool>(hasOpenItems.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    if (synced.present) {
+      map['synced'] = Variable<bool>(synced.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1636,15 +1635,15 @@ class JobsLocalCompanion extends UpdateCompanion<JobsLocalData> {
   String toString() {
     return (StringBuffer('JobsLocalCompanion(')
           ..write('jobId: $jobId, ')
-          ..write('code: $code, ')
-          ..write('description: $description, ')
-          ..write('location: $location, ')
+          ..write('serviceId: $serviceId, ')
+          ..write('customerName: $customerName, ')
+          ..write('address: $address, ')
+          ..write('scheduledDate: $scheduledDate, ')
           ..write('foremanId: $foremanId, ')
-          ..write('crewSize: $crewSize, ')
-          ..write('windowStart: $windowStart, ')
-          ..write('windowEnd: $windowEnd, ')
-          ..write('hasOpenItems: $hasOpenItems, ')
-          ..write('updatedAt: $updatedAt, ')
+          ..write('crewListJson: $crewListJson, ')
+          ..write('crewHash: $crewHash, ')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('synced: $synced, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2307,6 +2306,17 @@ class $SyncQueueTable extends SyncQueue
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _mobileUuidMeta = const VerificationMeta(
+    'mobileUuid',
+  );
+  @override
+  late final GeneratedColumn<String> mobileUuid = GeneratedColumn<String>(
+    'mobile_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2316,6 +2326,7 @@ class $SyncQueueTable extends SyncQueue
     lastError,
     createdAt,
     lastAttemptAt,
+    mobileUuid,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2378,11 +2389,21 @@ class $SyncQueueTable extends SyncQueue
         ),
       );
     }
+    if (data.containsKey('mobile_uuid')) {
+      context.handle(
+        _mobileUuidMeta,
+        mobileUuid.isAcceptableOrUnknown(data['mobile_uuid']!, _mobileUuidMeta),
+      );
+    }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {entityType, mobileUuid},
+  ];
   @override
   SyncQueueData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -2415,6 +2436,10 @@ class $SyncQueueTable extends SyncQueue
         DriftSqlType.dateTime,
         data['${effectivePrefix}last_attempt_at'],
       ),
+      mobileUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mobile_uuid'],
+      ),
     );
   }
 
@@ -2432,6 +2457,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
   final String? lastError;
   final DateTime createdAt;
   final DateTime? lastAttemptAt;
+  final String? mobileUuid;
   const SyncQueueData({
     required this.id,
     required this.entityType,
@@ -2440,6 +2466,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     this.lastError,
     required this.createdAt,
     this.lastAttemptAt,
+    this.mobileUuid,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2454,6 +2481,9 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || lastAttemptAt != null) {
       map['last_attempt_at'] = Variable<DateTime>(lastAttemptAt);
+    }
+    if (!nullToAbsent || mobileUuid != null) {
+      map['mobile_uuid'] = Variable<String>(mobileUuid);
     }
     return map;
   }
@@ -2471,6 +2501,9 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
       lastAttemptAt: lastAttemptAt == null && nullToAbsent
           ? const Value.absent()
           : Value(lastAttemptAt),
+      mobileUuid: mobileUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mobileUuid),
     );
   }
 
@@ -2487,6 +2520,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
       lastError: serializer.fromJson<String?>(json['lastError']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       lastAttemptAt: serializer.fromJson<DateTime?>(json['lastAttemptAt']),
+      mobileUuid: serializer.fromJson<String?>(json['mobileUuid']),
     );
   }
   @override
@@ -2500,6 +2534,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
       'lastError': serializer.toJson<String?>(lastError),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'lastAttemptAt': serializer.toJson<DateTime?>(lastAttemptAt),
+      'mobileUuid': serializer.toJson<String?>(mobileUuid),
     };
   }
 
@@ -2511,6 +2546,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     Value<String?> lastError = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> lastAttemptAt = const Value.absent(),
+    Value<String?> mobileUuid = const Value.absent(),
   }) => SyncQueueData(
     id: id ?? this.id,
     entityType: entityType ?? this.entityType,
@@ -2521,6 +2557,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     lastAttemptAt: lastAttemptAt.present
         ? lastAttemptAt.value
         : this.lastAttemptAt,
+    mobileUuid: mobileUuid.present ? mobileUuid.value : this.mobileUuid,
   );
   SyncQueueData copyWithCompanion(SyncQueueCompanion data) {
     return SyncQueueData(
@@ -2537,6 +2574,9 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
       lastAttemptAt: data.lastAttemptAt.present
           ? data.lastAttemptAt.value
           : this.lastAttemptAt,
+      mobileUuid: data.mobileUuid.present
+          ? data.mobileUuid.value
+          : this.mobileUuid,
     );
   }
 
@@ -2549,7 +2589,8 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
           ..write('attemptCount: $attemptCount, ')
           ..write('lastError: $lastError, ')
           ..write('createdAt: $createdAt, ')
-          ..write('lastAttemptAt: $lastAttemptAt')
+          ..write('lastAttemptAt: $lastAttemptAt, ')
+          ..write('mobileUuid: $mobileUuid')
           ..write(')'))
         .toString();
   }
@@ -2563,6 +2604,7 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
     lastError,
     createdAt,
     lastAttemptAt,
+    mobileUuid,
   );
   @override
   bool operator ==(Object other) =>
@@ -2574,7 +2616,8 @@ class SyncQueueData extends DataClass implements Insertable<SyncQueueData> {
           other.attemptCount == this.attemptCount &&
           other.lastError == this.lastError &&
           other.createdAt == this.createdAt &&
-          other.lastAttemptAt == this.lastAttemptAt);
+          other.lastAttemptAt == this.lastAttemptAt &&
+          other.mobileUuid == this.mobileUuid);
 }
 
 class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
@@ -2585,6 +2628,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
   final Value<String?> lastError;
   final Value<DateTime> createdAt;
   final Value<DateTime?> lastAttemptAt;
+  final Value<String?> mobileUuid;
   const SyncQueueCompanion({
     this.id = const Value.absent(),
     this.entityType = const Value.absent(),
@@ -2593,6 +2637,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     this.lastError = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.lastAttemptAt = const Value.absent(),
+    this.mobileUuid = const Value.absent(),
   });
   SyncQueueCompanion.insert({
     this.id = const Value.absent(),
@@ -2602,6 +2647,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     this.lastError = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.lastAttemptAt = const Value.absent(),
+    this.mobileUuid = const Value.absent(),
   }) : entityType = Value(entityType),
        payload = Value(payload);
   static Insertable<SyncQueueData> custom({
@@ -2612,6 +2658,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     Expression<String>? lastError,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? lastAttemptAt,
+    Expression<String>? mobileUuid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2621,6 +2668,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
       if (lastError != null) 'last_error': lastError,
       if (createdAt != null) 'created_at': createdAt,
       if (lastAttemptAt != null) 'last_attempt_at': lastAttemptAt,
+      if (mobileUuid != null) 'mobile_uuid': mobileUuid,
     });
   }
 
@@ -2632,6 +2680,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     Value<String?>? lastError,
     Value<DateTime>? createdAt,
     Value<DateTime?>? lastAttemptAt,
+    Value<String?>? mobileUuid,
   }) {
     return SyncQueueCompanion(
       id: id ?? this.id,
@@ -2641,6 +2690,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
       lastError: lastError ?? this.lastError,
       createdAt: createdAt ?? this.createdAt,
       lastAttemptAt: lastAttemptAt ?? this.lastAttemptAt,
+      mobileUuid: mobileUuid ?? this.mobileUuid,
     );
   }
 
@@ -2668,6 +2718,9 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
     if (lastAttemptAt.present) {
       map['last_attempt_at'] = Variable<DateTime>(lastAttemptAt.value);
     }
+    if (mobileUuid.present) {
+      map['mobile_uuid'] = Variable<String>(mobileUuid.value);
+    }
     return map;
   }
 
@@ -2680,7 +2733,419 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
           ..write('attemptCount: $attemptCount, ')
           ..write('lastError: $lastError, ')
           ..write('createdAt: $createdAt, ')
-          ..write('lastAttemptAt: $lastAttemptAt')
+          ..write('lastAttemptAt: $lastAttemptAt, ')
+          ..write('mobileUuid: $mobileUuid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CorruptQueueEntriesTable extends CorruptQueueEntries
+    with TableInfo<$CorruptQueueEntriesTable, CorruptQueueEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CorruptQueueEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _originalQueueIdMeta = const VerificationMeta(
+    'originalQueueId',
+  );
+  @override
+  late final GeneratedColumn<int> originalQueueId = GeneratedColumn<int>(
+    'original_queue_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _errorMeta = const VerificationMeta('error');
+  @override
+  late final GeneratedColumn<String> error = GeneratedColumn<String>(
+    'error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    originalQueueId,
+    entityType,
+    payload,
+    error,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'corrupt_queue_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CorruptQueueEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('original_queue_id')) {
+      context.handle(
+        _originalQueueIdMeta,
+        originalQueueId.isAcceptableOrUnknown(
+          data['original_queue_id']!,
+          _originalQueueIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    }
+    if (data.containsKey('error')) {
+      context.handle(
+        _errorMeta,
+        error.isAcceptableOrUnknown(data['error']!, _errorMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CorruptQueueEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CorruptQueueEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      originalQueueId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}original_queue_id'],
+      ),
+      entityType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_type'],
+      ),
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      ),
+      error: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CorruptQueueEntriesTable createAlias(String alias) {
+    return $CorruptQueueEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class CorruptQueueEntry extends DataClass
+    implements Insertable<CorruptQueueEntry> {
+  final int id;
+  final int? originalQueueId;
+  final String? entityType;
+  final String? payload;
+  final String? error;
+  final DateTime createdAt;
+  const CorruptQueueEntry({
+    required this.id,
+    this.originalQueueId,
+    this.entityType,
+    this.payload,
+    this.error,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || originalQueueId != null) {
+      map['original_queue_id'] = Variable<int>(originalQueueId);
+    }
+    if (!nullToAbsent || entityType != null) {
+      map['entity_type'] = Variable<String>(entityType);
+    }
+    if (!nullToAbsent || payload != null) {
+      map['payload'] = Variable<String>(payload);
+    }
+    if (!nullToAbsent || error != null) {
+      map['error'] = Variable<String>(error);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  CorruptQueueEntriesCompanion toCompanion(bool nullToAbsent) {
+    return CorruptQueueEntriesCompanion(
+      id: Value(id),
+      originalQueueId: originalQueueId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalQueueId),
+      entityType: entityType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(entityType),
+      payload: payload == null && nullToAbsent
+          ? const Value.absent()
+          : Value(payload),
+      error: error == null && nullToAbsent
+          ? const Value.absent()
+          : Value(error),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory CorruptQueueEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CorruptQueueEntry(
+      id: serializer.fromJson<int>(json['id']),
+      originalQueueId: serializer.fromJson<int?>(json['originalQueueId']),
+      entityType: serializer.fromJson<String?>(json['entityType']),
+      payload: serializer.fromJson<String?>(json['payload']),
+      error: serializer.fromJson<String?>(json['error']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'originalQueueId': serializer.toJson<int?>(originalQueueId),
+      'entityType': serializer.toJson<String?>(entityType),
+      'payload': serializer.toJson<String?>(payload),
+      'error': serializer.toJson<String?>(error),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  CorruptQueueEntry copyWith({
+    int? id,
+    Value<int?> originalQueueId = const Value.absent(),
+    Value<String?> entityType = const Value.absent(),
+    Value<String?> payload = const Value.absent(),
+    Value<String?> error = const Value.absent(),
+    DateTime? createdAt,
+  }) => CorruptQueueEntry(
+    id: id ?? this.id,
+    originalQueueId: originalQueueId.present
+        ? originalQueueId.value
+        : this.originalQueueId,
+    entityType: entityType.present ? entityType.value : this.entityType,
+    payload: payload.present ? payload.value : this.payload,
+    error: error.present ? error.value : this.error,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  CorruptQueueEntry copyWithCompanion(CorruptQueueEntriesCompanion data) {
+    return CorruptQueueEntry(
+      id: data.id.present ? data.id.value : this.id,
+      originalQueueId: data.originalQueueId.present
+          ? data.originalQueueId.value
+          : this.originalQueueId,
+      entityType: data.entityType.present
+          ? data.entityType.value
+          : this.entityType,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      error: data.error.present ? data.error.value : this.error,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CorruptQueueEntry(')
+          ..write('id: $id, ')
+          ..write('originalQueueId: $originalQueueId, ')
+          ..write('entityType: $entityType, ')
+          ..write('payload: $payload, ')
+          ..write('error: $error, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, originalQueueId, entityType, payload, error, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CorruptQueueEntry &&
+          other.id == this.id &&
+          other.originalQueueId == this.originalQueueId &&
+          other.entityType == this.entityType &&
+          other.payload == this.payload &&
+          other.error == this.error &&
+          other.createdAt == this.createdAt);
+}
+
+class CorruptQueueEntriesCompanion extends UpdateCompanion<CorruptQueueEntry> {
+  final Value<int> id;
+  final Value<int?> originalQueueId;
+  final Value<String?> entityType;
+  final Value<String?> payload;
+  final Value<String?> error;
+  final Value<DateTime> createdAt;
+  const CorruptQueueEntriesCompanion({
+    this.id = const Value.absent(),
+    this.originalQueueId = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.error = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  CorruptQueueEntriesCompanion.insert({
+    this.id = const Value.absent(),
+    this.originalQueueId = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.error = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  static Insertable<CorruptQueueEntry> custom({
+    Expression<int>? id,
+    Expression<int>? originalQueueId,
+    Expression<String>? entityType,
+    Expression<String>? payload,
+    Expression<String>? error,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (originalQueueId != null) 'original_queue_id': originalQueueId,
+      if (entityType != null) 'entity_type': entityType,
+      if (payload != null) 'payload': payload,
+      if (error != null) 'error': error,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  CorruptQueueEntriesCompanion copyWith({
+    Value<int>? id,
+    Value<int?>? originalQueueId,
+    Value<String?>? entityType,
+    Value<String?>? payload,
+    Value<String?>? error,
+    Value<DateTime>? createdAt,
+  }) {
+    return CorruptQueueEntriesCompanion(
+      id: id ?? this.id,
+      originalQueueId: originalQueueId ?? this.originalQueueId,
+      entityType: entityType ?? this.entityType,
+      payload: payload ?? this.payload,
+      error: error ?? this.error,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (originalQueueId.present) {
+      map['original_queue_id'] = Variable<int>(originalQueueId.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (error.present) {
+      map['error'] = Variable<String>(error.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CorruptQueueEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('originalQueueId: $originalQueueId, ')
+          ..write('entityType: $entityType, ')
+          ..write('payload: $payload, ')
+          ..write('error: $error, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -2693,6 +3158,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $JobsLocalTable jobsLocal = $JobsLocalTable(this);
   late final $ProfileLocalTable profileLocal = $ProfileLocalTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
+  late final $CorruptQueueEntriesTable corruptQueueEntries =
+      $CorruptQueueEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2702,6 +3169,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     jobsLocal,
     profileLocal,
     syncQueue,
+    corruptQueueEntries,
   ];
 }
 
@@ -3167,29 +3635,29 @@ typedef $$PunchesLocalTableProcessedTableManager =
 typedef $$JobsLocalTableCreateCompanionBuilder =
     JobsLocalCompanion Function({
       required String jobId,
-      required String code,
-      required String description,
-      Value<String?> location,
+      required String serviceId,
+      required String customerName,
+      Value<String?> address,
+      required DateTime scheduledDate,
       Value<String?> foremanId,
-      Value<int?> crewSize,
-      Value<DateTime?> windowStart,
-      Value<DateTime?> windowEnd,
-      Value<bool> hasOpenItems,
-      Value<DateTime?> updatedAt,
+      Value<String> crewListJson,
+      Value<String?> crewHash,
+      Value<DateTime> lastUpdated,
+      Value<bool> synced,
       Value<int> rowid,
     });
 typedef $$JobsLocalTableUpdateCompanionBuilder =
     JobsLocalCompanion Function({
       Value<String> jobId,
-      Value<String> code,
-      Value<String> description,
-      Value<String?> location,
+      Value<String> serviceId,
+      Value<String> customerName,
+      Value<String?> address,
+      Value<DateTime> scheduledDate,
       Value<String?> foremanId,
-      Value<int?> crewSize,
-      Value<DateTime?> windowStart,
-      Value<DateTime?> windowEnd,
-      Value<bool> hasOpenItems,
-      Value<DateTime?> updatedAt,
+      Value<String> crewListJson,
+      Value<String?> crewHash,
+      Value<DateTime> lastUpdated,
+      Value<bool> synced,
       Value<int> rowid,
     });
 
@@ -3207,18 +3675,23 @@ class $$JobsLocalTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get code => $composableBuilder(
-    column: $table.code,
+  ColumnFilters<String> get serviceId => $composableBuilder(
+    column: $table.serviceId,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get description => $composableBuilder(
-    column: $table.description,
+  ColumnFilters<String> get customerName => $composableBuilder(
+    column: $table.customerName,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get location => $composableBuilder(
-    column: $table.location,
+  ColumnFilters<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get scheduledDate => $composableBuilder(
+    column: $table.scheduledDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3227,28 +3700,23 @@ class $$JobsLocalTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get crewSize => $composableBuilder(
-    column: $table.crewSize,
+  ColumnFilters<String> get crewListJson => $composableBuilder(
+    column: $table.crewListJson,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get windowStart => $composableBuilder(
-    column: $table.windowStart,
+  ColumnFilters<String> get crewHash => $composableBuilder(
+    column: $table.crewHash,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get windowEnd => $composableBuilder(
-    column: $table.windowEnd,
+  ColumnFilters<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<bool> get hasOpenItems => $composableBuilder(
-    column: $table.hasOpenItems,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
+  ColumnFilters<bool> get synced => $composableBuilder(
+    column: $table.synced,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3267,18 +3735,23 @@ class $$JobsLocalTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get code => $composableBuilder(
-    column: $table.code,
+  ColumnOrderings<String> get serviceId => $composableBuilder(
+    column: $table.serviceId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get description => $composableBuilder(
-    column: $table.description,
+  ColumnOrderings<String> get customerName => $composableBuilder(
+    column: $table.customerName,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get location => $composableBuilder(
-    column: $table.location,
+  ColumnOrderings<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get scheduledDate => $composableBuilder(
+    column: $table.scheduledDate,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3287,28 +3760,23 @@ class $$JobsLocalTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get crewSize => $composableBuilder(
-    column: $table.crewSize,
+  ColumnOrderings<String> get crewListJson => $composableBuilder(
+    column: $table.crewListJson,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get windowStart => $composableBuilder(
-    column: $table.windowStart,
+  ColumnOrderings<String> get crewHash => $composableBuilder(
+    column: $table.crewHash,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get windowEnd => $composableBuilder(
-    column: $table.windowEnd,
+  ColumnOrderings<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get hasOpenItems => $composableBuilder(
-    column: $table.hasOpenItems,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
+  ColumnOrderings<bool> get synced => $composableBuilder(
+    column: $table.synced,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -3325,38 +3793,40 @@ class $$JobsLocalTableAnnotationComposer
   GeneratedColumn<String> get jobId =>
       $composableBuilder(column: $table.jobId, builder: (column) => column);
 
-  GeneratedColumn<String> get code =>
-      $composableBuilder(column: $table.code, builder: (column) => column);
+  GeneratedColumn<String> get serviceId =>
+      $composableBuilder(column: $table.serviceId, builder: (column) => column);
 
-  GeneratedColumn<String> get description => $composableBuilder(
-    column: $table.description,
+  GeneratedColumn<String> get customerName => $composableBuilder(
+    column: $table.customerName,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get location =>
-      $composableBuilder(column: $table.location, builder: (column) => column);
+  GeneratedColumn<String> get address =>
+      $composableBuilder(column: $table.address, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get scheduledDate => $composableBuilder(
+    column: $table.scheduledDate,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get foremanId =>
       $composableBuilder(column: $table.foremanId, builder: (column) => column);
 
-  GeneratedColumn<int> get crewSize =>
-      $composableBuilder(column: $table.crewSize, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get windowStart => $composableBuilder(
-    column: $table.windowStart,
+  GeneratedColumn<String> get crewListJson => $composableBuilder(
+    column: $table.crewListJson,
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get windowEnd =>
-      $composableBuilder(column: $table.windowEnd, builder: (column) => column);
+  GeneratedColumn<String> get crewHash =>
+      $composableBuilder(column: $table.crewHash, builder: (column) => column);
 
-  GeneratedColumn<bool> get hasOpenItems => $composableBuilder(
-    column: $table.hasOpenItems,
+  GeneratedColumn<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+  GeneratedColumn<bool> get synced =>
+      $composableBuilder(column: $table.synced, builder: (column) => column);
 }
 
 class $$JobsLocalTableTableManager
@@ -3391,53 +3861,53 @@ class $$JobsLocalTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> jobId = const Value.absent(),
-                Value<String> code = const Value.absent(),
-                Value<String> description = const Value.absent(),
-                Value<String?> location = const Value.absent(),
+                Value<String> serviceId = const Value.absent(),
+                Value<String> customerName = const Value.absent(),
+                Value<String?> address = const Value.absent(),
+                Value<DateTime> scheduledDate = const Value.absent(),
                 Value<String?> foremanId = const Value.absent(),
-                Value<int?> crewSize = const Value.absent(),
-                Value<DateTime?> windowStart = const Value.absent(),
-                Value<DateTime?> windowEnd = const Value.absent(),
-                Value<bool> hasOpenItems = const Value.absent(),
-                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<String> crewListJson = const Value.absent(),
+                Value<String?> crewHash = const Value.absent(),
+                Value<DateTime> lastUpdated = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JobsLocalCompanion(
                 jobId: jobId,
-                code: code,
-                description: description,
-                location: location,
+                serviceId: serviceId,
+                customerName: customerName,
+                address: address,
+                scheduledDate: scheduledDate,
                 foremanId: foremanId,
-                crewSize: crewSize,
-                windowStart: windowStart,
-                windowEnd: windowEnd,
-                hasOpenItems: hasOpenItems,
-                updatedAt: updatedAt,
+                crewListJson: crewListJson,
+                crewHash: crewHash,
+                lastUpdated: lastUpdated,
+                synced: synced,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String jobId,
-                required String code,
-                required String description,
-                Value<String?> location = const Value.absent(),
+                required String serviceId,
+                required String customerName,
+                Value<String?> address = const Value.absent(),
+                required DateTime scheduledDate,
                 Value<String?> foremanId = const Value.absent(),
-                Value<int?> crewSize = const Value.absent(),
-                Value<DateTime?> windowStart = const Value.absent(),
-                Value<DateTime?> windowEnd = const Value.absent(),
-                Value<bool> hasOpenItems = const Value.absent(),
-                Value<DateTime?> updatedAt = const Value.absent(),
+                Value<String> crewListJson = const Value.absent(),
+                Value<String?> crewHash = const Value.absent(),
+                Value<DateTime> lastUpdated = const Value.absent(),
+                Value<bool> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JobsLocalCompanion.insert(
                 jobId: jobId,
-                code: code,
-                description: description,
-                location: location,
+                serviceId: serviceId,
+                customerName: customerName,
+                address: address,
+                scheduledDate: scheduledDate,
                 foremanId: foremanId,
-                crewSize: crewSize,
-                windowStart: windowStart,
-                windowEnd: windowEnd,
-                hasOpenItems: hasOpenItems,
-                updatedAt: updatedAt,
+                crewListJson: crewListJson,
+                crewHash: crewHash,
+                lastUpdated: lastUpdated,
+                synced: synced,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -3754,6 +4224,7 @@ typedef $$SyncQueueTableCreateCompanionBuilder =
       Value<String?> lastError,
       Value<DateTime> createdAt,
       Value<DateTime?> lastAttemptAt,
+      Value<String?> mobileUuid,
     });
 typedef $$SyncQueueTableUpdateCompanionBuilder =
     SyncQueueCompanion Function({
@@ -3764,6 +4235,7 @@ typedef $$SyncQueueTableUpdateCompanionBuilder =
       Value<String?> lastError,
       Value<DateTime> createdAt,
       Value<DateTime?> lastAttemptAt,
+      Value<String?> mobileUuid,
     });
 
 class $$SyncQueueTableFilterComposer
@@ -3807,6 +4279,11 @@ class $$SyncQueueTableFilterComposer
 
   ColumnFilters<DateTime> get lastAttemptAt => $composableBuilder(
     column: $table.lastAttemptAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mobileUuid => $composableBuilder(
+    column: $table.mobileUuid,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3854,6 +4331,11 @@ class $$SyncQueueTableOrderingComposer
     column: $table.lastAttemptAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get mobileUuid => $composableBuilder(
+    column: $table.mobileUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SyncQueueTableAnnotationComposer
@@ -3889,6 +4371,11 @@ class $$SyncQueueTableAnnotationComposer
 
   GeneratedColumn<DateTime> get lastAttemptAt => $composableBuilder(
     column: $table.lastAttemptAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mobileUuid => $composableBuilder(
+    column: $table.mobileUuid,
     builder: (column) => column,
   );
 }
@@ -3931,6 +4418,7 @@ class $$SyncQueueTableTableManager
                 Value<String?> lastError = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> lastAttemptAt = const Value.absent(),
+                Value<String?> mobileUuid = const Value.absent(),
               }) => SyncQueueCompanion(
                 id: id,
                 entityType: entityType,
@@ -3939,6 +4427,7 @@ class $$SyncQueueTableTableManager
                 lastError: lastError,
                 createdAt: createdAt,
                 lastAttemptAt: lastAttemptAt,
+                mobileUuid: mobileUuid,
               ),
           createCompanionCallback:
               ({
@@ -3949,6 +4438,7 @@ class $$SyncQueueTableTableManager
                 Value<String?> lastError = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> lastAttemptAt = const Value.absent(),
+                Value<String?> mobileUuid = const Value.absent(),
               }) => SyncQueueCompanion.insert(
                 id: id,
                 entityType: entityType,
@@ -3957,6 +4447,7 @@ class $$SyncQueueTableTableManager
                 lastError: lastError,
                 createdAt: createdAt,
                 lastAttemptAt: lastAttemptAt,
+                mobileUuid: mobileUuid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -3983,6 +4474,239 @@ typedef $$SyncQueueTableProcessedTableManager =
       SyncQueueData,
       PrefetchHooks Function()
     >;
+typedef $$CorruptQueueEntriesTableCreateCompanionBuilder =
+    CorruptQueueEntriesCompanion Function({
+      Value<int> id,
+      Value<int?> originalQueueId,
+      Value<String?> entityType,
+      Value<String?> payload,
+      Value<String?> error,
+      Value<DateTime> createdAt,
+    });
+typedef $$CorruptQueueEntriesTableUpdateCompanionBuilder =
+    CorruptQueueEntriesCompanion Function({
+      Value<int> id,
+      Value<int?> originalQueueId,
+      Value<String?> entityType,
+      Value<String?> payload,
+      Value<String?> error,
+      Value<DateTime> createdAt,
+    });
+
+class $$CorruptQueueEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $CorruptQueueEntriesTable> {
+  $$CorruptQueueEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get originalQueueId => $composableBuilder(
+    column: $table.originalQueueId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get error => $composableBuilder(
+    column: $table.error,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CorruptQueueEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CorruptQueueEntriesTable> {
+  $$CorruptQueueEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get originalQueueId => $composableBuilder(
+    column: $table.originalQueueId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get error => $composableBuilder(
+    column: $table.error,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CorruptQueueEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CorruptQueueEntriesTable> {
+  $$CorruptQueueEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get originalQueueId => $composableBuilder(
+    column: $table.originalQueueId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<String> get error =>
+      $composableBuilder(column: $table.error, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$CorruptQueueEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CorruptQueueEntriesTable,
+          CorruptQueueEntry,
+          $$CorruptQueueEntriesTableFilterComposer,
+          $$CorruptQueueEntriesTableOrderingComposer,
+          $$CorruptQueueEntriesTableAnnotationComposer,
+          $$CorruptQueueEntriesTableCreateCompanionBuilder,
+          $$CorruptQueueEntriesTableUpdateCompanionBuilder,
+          (
+            CorruptQueueEntry,
+            BaseReferences<
+              _$AppDatabase,
+              $CorruptQueueEntriesTable,
+              CorruptQueueEntry
+            >,
+          ),
+          CorruptQueueEntry,
+          PrefetchHooks Function()
+        > {
+  $$CorruptQueueEntriesTableTableManager(
+    _$AppDatabase db,
+    $CorruptQueueEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CorruptQueueEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CorruptQueueEntriesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CorruptQueueEntriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> originalQueueId = const Value.absent(),
+                Value<String?> entityType = const Value.absent(),
+                Value<String?> payload = const Value.absent(),
+                Value<String?> error = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => CorruptQueueEntriesCompanion(
+                id: id,
+                originalQueueId: originalQueueId,
+                entityType: entityType,
+                payload: payload,
+                error: error,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> originalQueueId = const Value.absent(),
+                Value<String?> entityType = const Value.absent(),
+                Value<String?> payload = const Value.absent(),
+                Value<String?> error = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => CorruptQueueEntriesCompanion.insert(
+                id: id,
+                originalQueueId: originalQueueId,
+                entityType: entityType,
+                payload: payload,
+                error: error,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CorruptQueueEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CorruptQueueEntriesTable,
+      CorruptQueueEntry,
+      $$CorruptQueueEntriesTableFilterComposer,
+      $$CorruptQueueEntriesTableOrderingComposer,
+      $$CorruptQueueEntriesTableAnnotationComposer,
+      $$CorruptQueueEntriesTableCreateCompanionBuilder,
+      $$CorruptQueueEntriesTableUpdateCompanionBuilder,
+      (
+        CorruptQueueEntry,
+        BaseReferences<
+          _$AppDatabase,
+          $CorruptQueueEntriesTable,
+          CorruptQueueEntry
+        >,
+      ),
+      CorruptQueueEntry,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3995,4 +4719,6 @@ class $AppDatabaseManager {
       $$ProfileLocalTableTableManager(_db, _db.profileLocal);
   $$SyncQueueTableTableManager get syncQueue =>
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
+  $$CorruptQueueEntriesTableTableManager get corruptQueueEntries =>
+      $$CorruptQueueEntriesTableTableManager(_db, _db.corruptQueueEntries);
 }

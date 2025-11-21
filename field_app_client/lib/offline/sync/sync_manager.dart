@@ -7,6 +7,7 @@ import '../../modules/auth/application/auth_controller.dart';
 import '../offline_providers.dart';
 import '../offline_status.dart';
 import 'punch_sync_transport.dart';
+import 'queue_alerts.dart';
 import 'sync_feedback.dart';
 import 'sync_state.dart';
 
@@ -73,7 +74,12 @@ class SyncManager {
     try {
       var entries = await _nextBatch();
       while (entries.isNotEmpty) {
-        final payloads = entries
+        final batchEntries = await _deduplicateBatch(entries);
+        if (batchEntries.isEmpty) {
+          entries = await _nextBatch();
+          continue;
+        }
+        final payloads = batchEntries
             .map(
               (entry) => PunchPayload(queueId: entry.id, data: entry.payload),
             )
@@ -82,7 +88,7 @@ class SyncManager {
           session: session,
           payloads: payloads,
         );
-        await _handleResponse(entries, response);
+        await _handleResponse(batchEntries, response);
         entries = await _nextBatch();
       }
       if (_state != SyncState.backingOff) {
@@ -96,8 +102,41 @@ class SyncManager {
     }
   }
 
+  Future<List<QueuedPayload>> _deduplicateBatch(
+    List<QueuedPayload> batch,
+  ) async {
+    if (batch.length <= 1) {
+      return batch;
+    }
+    final seen = <String>{};
+    final filtered = <QueuedPayload>[];
+    final duplicates = <int>[];
+    for (final entry in batch) {
+      final uuid = entry.mobileUuid ?? 'queue-${entry.id}';
+      if (seen.add(uuid)) {
+        filtered.add(entry);
+      } else {
+        duplicates.add(entry.id);
+      }
+    }
+    if (duplicates.isNotEmpty) {
+      await queueDao.deleteEntries(duplicates);
+    }
+    return filtered;
+  }
+
   Future<List<QueuedPayload>> _nextBatch() async {
-    return queueDao.fetchPending(limit: maxBatchSize);
+    var hadCorruption = false;
+    final entries = await queueDao.fetchPending(
+      limit: maxBatchSize,
+      onCorrupt: () => hadCorruption = true,
+    );
+    if (hadCorruption) {
+      _emitQueueAlert(
+        'A queued punch was unreadable and moved to a backup log. Contact support if punches are missing.',
+      );
+    }
+    return entries;
   }
 
   Future<void> _handleResponse(
@@ -287,6 +326,10 @@ class SyncManager {
 
   void _emitFeedback(SyncFeedback feedback) {
     _ref.read(syncFeedbackControllerProvider).emit(feedback);
+  }
+
+  void _emitQueueAlert(String message) {
+    _ref.read(queueAlertControllerProvider).emit(message);
   }
 }
 
