@@ -7,6 +7,8 @@ import '../../modules/auth/application/auth_controller.dart';
 import '../offline_providers.dart';
 import '../offline_status.dart';
 import 'punch_sync_transport.dart';
+import 'sync_feedback.dart';
+import 'sync_state.dart';
 
 /// SyncManager drives the Phase 1-1 §2.2 blueprint: it watches for
 /// foreground/network/manual triggers, drains the Drift queue in small
@@ -131,10 +133,30 @@ class SyncManager {
 
     if (syncedPunchIds.isNotEmpty) {
       await _markPunchesSynced(syncedPunchIds);
+      _ref.read(lastSuccessfulSyncProvider.notifier).state = DateTime.now();
     }
 
     if (response.hasErrors) {
       await _handleErrors(response.errors, batch);
+    }
+
+    final errorCount = response.errors.length;
+    if (errorCount > 0) {
+      final feedback = processedIds.isNotEmpty
+          ? SyncFeedback.partial(
+              total: batch.length,
+              processed: processedIds.length,
+              failed: errorCount,
+            )
+          : SyncFeedback.failure(total: batch.length, failed: errorCount);
+      _emitFeedback(feedback);
+    } else if (processedIds.isNotEmpty) {
+      _emitFeedback(
+        SyncFeedback.success(
+          total: batch.length,
+          processed: processedIds.length,
+        ),
+      );
     }
   }
 
@@ -261,6 +283,10 @@ class SyncManager {
     for (final punchId in punchIds) {
       await punchesDao.markSynced(punchId);
     }
+  }
+
+  void _emitFeedback(SyncFeedback feedback) {
+    _ref.read(syncFeedbackControllerProvider).emit(feedback);
   }
 }
 

@@ -568,6 +568,17 @@ If server returns:
 - Interim payload contract lives in `DL-005` + the wiring spec: mobile batches will wrap `employee_id`, `device_id`, `app_version`, and the detailed punch list so backend engineers know what to expect until they choose a different schema.
 - Provide API contract + sample Postman collection from the mobile team so backend devs can mirror payload/response expectations.
 
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Hardened `RestPunchSyncTransport` with unit coverage that validates the batch envelope (employee/device/app_version/batch_id) plus success/duplicate/error parsing so mobile wiring is ready once backend endpoints exist (`test/offline/sync/punch_sync_transport_test.dart`, evidence in `qa/logs/local_punch_storage_tests_2025-11-21.md`).
+- [ ] Backend Team — Deliver `/api/mobile/punches/batch` controller + Postman samples so mobile tests can flip from mock transport to live Laravel responses.
+
+**Past:** Transport logic existed but lacked regression tests, leaving payload wrappers and error-handling paths unverified.
+
+**Present:** Automated tests assert the request envelope + response parsing, keeping Phase 1-2 §5.1 ready for backend hookup while QA logs document the run.
+
+**Future:** Switch the app config to real transports once Laravel ships `/api/mobile/punches/batch`, then extend tests to hit a Postman mock/server for integration traces.
+
 #### **5.2 Build Payload Structure**
 
 Example:
@@ -593,6 +604,17 @@ Example:
 - Ensure payload also carries `device_id`, `source`, `mobile_uuid`, and optional `gps_unavailable` just like the schema additions planned for the backend.
 - Store payload definitions next to the integration spec so backend developers can copy/paste when writing feature tests.
 
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Locked `PunchDraft.toPayload` against the DL-005 contract, added focused coverage in `test/modules/punch/punch_models_test.dart`, and recorded the 20-test run in `qa/logs/punch_payload_contract_tests_2025-11-21.md` so the sample JSON is now code-backed.
+- [ ] Backend Team — Mirror the same field list (including `device_id`, `source`, `gps_unavailable`, `notes`) inside the Laravel batch punch DTO/Postman collection once `/api/mobile/punches/batch` scaffolding begins.
+
+**Past:** Payload requirements only lived in prose, so nullable fields (`service_id`, GPS triplet, `notes`) risked drifting from `PunchDraft` and the backend DTO without automated guards.
+
+**Present:** `PunchDraft.toPayload` now enforces the full envelope (mobile UUID, device/source metadata, GPS sample or `gps_unavailable` flag) and trims null keys; unit tests capture both populated and minimal drafts, and the wiring spec gained a parallel JSON sample + field matrix for backend devs.
+
+**Future:** Backend engineers will reincorporate the shared payload snippet into their Pest tests/Postman collection, then the mobile app can flip from mocks to live `/api/mobile/punches/batch` once Laravel echoes the same structure in responses.
+
 #### **5.3 Create Response Handler**
 
 Success:
@@ -607,6 +629,17 @@ Failure:
 - Parse per-record statuses (`processed`, `duplicate`, `error_code`) and update local tables accordingly to avoid ambiguous UI states.
 - Display toast/banner when a batch partially fails so field users know to resync before clocking out.
 
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Extended `SyncManager` with batch metrics + `sync_feedback.dart`, added snackbars in `NavigationShell`, and covered success/partial/failure cases in `test/offline/sync_manager_test.dart` (see `qa/logs/punch_response_handler_tests_2025-11-21.md`).
+- [ ] Backend Team — Keep error-code taxonomy/documentation aligned so Laravel responses remain descriptive enough for the new partial-failure banner.
+
+**Past:** Queue + DAO updates already marked duplicates/errors, but UI provided no signal when a batch partially failed, so crews could clock out unaware of unsynced punches.
+
+**Present:** `SyncManager` now emits batch feedback events (success/partial/failure), the navigation shell listens for them, and snackbars alert users whenever errors remain while at least one punch synced; automated tests prove the state machine stays deterministic.
+
+**Future:** Once Laravel finalizes `/api/mobile/punches/batch`, backend error codes will feed the same banner/snackbar experience and can be expanded to analytics dashboards or persistent warning chips as Phase 1-2 progresses.
+
 ---
 
 ### **6. Error Handling + Reliability**
@@ -616,6 +649,17 @@ Failure:
 - If offline → queue only
 - If online → attempt sync
 - Provide a persistent icon/badge indicating current connectivity so foremen know when data last synced.
+
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Wired `connectivity_plus` into `ConnectivityMonitor`, auto-updated `offlineStatusProvider`, auto-triggered sync on reconnect, and added the AppBar badge + last-sync timestamp with unit coverage + QA log `qa/logs/network_state_detection_tests_2025-11-21.md`.
+- [ ] Backend Team — No action until telemetry endpoints land; confirm whether mobile should report connectivity analytics in future phases.
+
+**Past:** Offline status defaulted to “online” with no telemetry, so SyncManager couldn’t auto-resume after a connection drop and the UI lacked a persistent indicator.
+
+**Present:** Connectivity changes now update `offlineStatusProvider`, kick off `SyncManager.trigger(SyncTrigger.networkReconnect)`, and surface an always-on badge plus “last sync” copy so field users know when data last flushed.
+
+**Future:** Feed connectivity samples into analytics/telemetry once backend defines targets, and expand the badge into an offline banner per §7.1 after product reviews.
 
 #### **6.2 Duplicate Punch Prevention**
 

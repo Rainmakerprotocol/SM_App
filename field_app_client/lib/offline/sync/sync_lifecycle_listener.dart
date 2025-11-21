@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../modules/auth/application/auth_controller.dart';
+import '../network/connectivity_monitor.dart';
 import 'sync_manager.dart';
 import 'sync_providers.dart';
 
@@ -28,6 +29,7 @@ class _SyncLifecycleListenerState extends ConsumerState<SyncLifecycleListener>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ref.read(connectivityMonitorProvider);
     _authSubscription = ref.listenManual<AuthState>(
       authControllerProvider,
       _handleAuthStateChanged,

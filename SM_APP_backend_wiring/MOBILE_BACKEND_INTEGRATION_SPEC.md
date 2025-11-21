@@ -197,6 +197,52 @@ scheduleRetry():
 - Log every rejected punch with the mobile UUID, employee ID, and reason to match analytics coming from the app.
 - Honor `Authorization: Bearer` headers and return `401` immediately so the app pauses syncing and prompts for login.
 
+### 5.3 Punch Payload Definition (Phase 1-2 §5.2)
+
+Mobile now ships a code-backed payload snapshot (see `test/modules/punch/punch_models_test.dart` + QA log `qa/logs/punch_payload_contract_tests_2025-11-21.md`) so Laravel devs can copy the exact structure into DTOs/Pest fixtures:
+
+```json
+{
+  "employee_id": "12",
+  "device_id": "device-123",
+  "app_version": "1.0.0",
+  "punches": [
+    {
+      "mobile_uuid": "resolved-id",
+      "job_id": "245",
+      "service_id": "611",
+      "type": "IN",
+      "timestamp_device": "2025-11-21T08:30:00.000Z",
+      "gps_lat": 43.0,
+      "gps_lng": -83.0,
+      "gps_accuracy": 9.5,
+      "gps_unavailable": false,
+      "device_id": "device-123",
+      "source": "mobile_app",
+      "notes": "Starting tear-off"
+    }
+  ]
+}
+```
+
+| Field | Required? | Notes |
+|-------|-----------|-------|
+| `employee_id` | Yes | Stringified to match mobile auth cache. |
+| `device_id` | Yes | Unique per install; mirrors analytics + dispute references. |
+| `app_version` | Yes | Already part of the envelope from §5.1 tests so backend can gate migrations. |
+| `punches[].mobile_uuid` | Yes | Drift-resolved UUID; duplicates list references this same value. |
+| `punches[].job_id` | Yes | String to avoid int/long drift between MySQL + Drift. |
+| `punches[].service_id` | No | Present when user selected a service; omitted otherwise. |
+| `punches[].type` | Yes | Enum values: `IN`, `OUT`, `BREAK_START`, `BREAK_END`. |
+| `punches[].timestamp_device` | Yes | ISO-8601 UTC string; backend converts to payroll TZ. |
+| `punches[].gps_lat` / `gps_lng` / `gps_accuracy` | No | Included only when a GPS fix exists; accuracy in meters. |
+| `punches[].gps_unavailable` | Yes | Boolean toggled true when no fix within 10s per `DL-006`. |
+| `punches[].device_id` | Yes | Repeated for audit parity with `employee_id` when logs get detached from envelopes. |
+| `punches[].source` | Yes | Defaults to `mobile_app`; job clock imports will emit `job_clock`. |
+| `punches[].notes` | No | Optional technician note attached to the punch. |
+
+> Backend TODO: Align DTO validation to the above optional/required matrix and surface descriptive `errors[].code` values (e.g., `invalid_job`, `gps_required`) so the mobile app can keep dispute markers accurate.
+
 ---
 
 ## 6. Error Handling
@@ -210,6 +256,8 @@ scheduleRetry():
 | Invalid timestamp | 200 | `errors` entry with `code: invalid_timestamp` | Mobile stores validation text, marks record as dispute-required so user can correct locally |
 | Job mismatch | 200 | `errors` entry with `code: job_mismatch` | Mobile auto-marks record as dispute-required and surfaces message once dispute UI lands |
 | Server error | 500 | `{ "success": false, "msg": "Unexpected error" }` | Leave in queue, exponential backoff |
+
+> **Client UX hook:** The mobile app now displays a snackbar when a batch returns any `errors` entries, so keep `errors[].code` + `errors[].message` human-readable (`invalid_job`, `gps_required`, etc.) to help field techs understand what still needs attention.
 
 ---
 

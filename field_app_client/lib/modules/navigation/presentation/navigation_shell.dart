@@ -7,8 +7,11 @@ import '../../jobs/presentation/job_list_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../punch/presentation/punch_screen.dart';
 import '../../timesheet/presentation/timesheet_screen.dart';
+import '../../../offline/offline_status.dart';
+import '../../../offline/sync/sync_feedback.dart';
 import '../../../offline/sync/sync_manager.dart';
 import '../../../offline/sync/sync_providers.dart';
+import '../../../offline/sync/sync_state.dart';
 
 final _currentTabProvider = StateProvider<int>((ref) => 0);
 
@@ -55,6 +58,31 @@ class NavigationShell extends ConsumerWidget {
     final currentIndex = ref.watch(_currentTabProvider);
     final controller = ref.read(authControllerProvider.notifier);
     final syncManager = ref.read(syncManagerProvider);
+    final offlineStatus = ref.watch(offlineStatusProvider);
+    final lastSync = ref.watch(lastSuccessfulSyncProvider);
+
+    ref.listen<AsyncValue<SyncFeedback>>(syncFeedbackStreamProvider, (
+      prev,
+      next,
+    ) {
+      next.whenData((feedback) {
+        if (feedback.type == SyncFeedbackType.success) {
+          return;
+        }
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(feedback.buildMessage()),
+            backgroundColor: feedback.type == SyncFeedbackType.partialFailure
+                ? Colors.orange
+                : Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      });
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -78,6 +106,11 @@ class NavigationShell extends ConsumerWidget {
               Text(
                 'Welcome ${displayName.isEmpty ? 'Crew Member' : displayName}',
                 style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 4),
+              _ConnectivityBadge(
+                isOnline: offlineStatus.hasConnectivity,
+                lastSync: lastSync,
               ),
               const SizedBox(height: 8),
             ],
@@ -103,6 +136,55 @@ class NavigationShell extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _ConnectivityBadge extends StatelessWidget {
+  const _ConnectivityBadge({required this.isOnline, required this.lastSync});
+
+  final bool isOnline;
+  final DateTime? lastSync;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isOnline ? Colors.green : Colors.red;
+    final label = isOnline ? 'Online' : 'Offline';
+    final subtitle = _formatLastSync(lastSync);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(isOnline ? Icons.wifi : Icons.wifi_off, size: 16, color: color),
+        const SizedBox(width: 4),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
+        if (subtitle != null) ...[
+          const SizedBox(width: 8),
+          Text(
+            subtitle,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+String? _formatLastSync(DateTime? timestamp) {
+  if (timestamp == null) {
+    return null;
+  }
+  final now = DateTime.now();
+  final diff = now.difference(timestamp);
+  if (diff.inSeconds < 60) {
+    return 'Synced just now';
+  }
+  if (diff.inMinutes < 60) {
+    return 'Last sync ${diff.inMinutes}m ago';
+  }
+  if (diff.inHours < 24) {
+    return 'Last sync ${diff.inHours}h ago';
+  }
+  return 'Last sync ${diff.inDays}d ago';
 }
 
 class _TabDestination {

@@ -7,8 +7,10 @@ import 'package:field_app_client/modules/auth/domain/auth_models.dart';
 import 'package:field_app_client/offline/offline_providers.dart';
 import 'package:field_app_client/offline/offline_status.dart';
 import 'package:field_app_client/offline/sync/punch_sync_transport.dart';
+import 'package:field_app_client/offline/sync/sync_feedback.dart';
 import 'package:field_app_client/offline/sync/sync_manager.dart';
 import 'package:field_app_client/offline/sync/sync_providers.dart';
+import 'package:field_app_client/offline/sync/sync_state.dart';
 
 class _MockQueueDao extends Mock implements SyncQueueDao {}
 
@@ -46,7 +48,10 @@ void main() {
         punchesDaoProvider.overrideWithValue(punchesDao),
         punchSyncTransportProvider.overrideWithValue(transport),
         offlineStatusProvider.overrideWith(
-          (ref) => const OfflineStatus(hasConnectivity: true),
+          (ref) => OfflineStatus(
+            hasConnectivity: true,
+            lastUpdated: DateTime(2025, 1, 1),
+          ),
         ),
         authSessionProvider.overrideWithValue(session),
         syncManagerProvider.overrideWith((ref) {
@@ -113,12 +118,17 @@ void main() {
     );
     addTearDown(container.dispose);
 
+    final feedbackFuture = container.read(syncFeedbackStreamProvider.future);
     final manager = container.read(syncManagerProvider);
     await manager.trigger(SyncTrigger.explicit);
+    final feedback = await feedbackFuture;
 
     verify(() => queueDao.deleteEntries([1])).called(1);
     verify(() => punchesDao.markSynced('abc')).called(1);
     expect(manager.state, SyncState.idle);
+    expect(feedback.type, SyncFeedbackType.success);
+    expect(feedback.processed, 1);
+    expect(container.read(lastSuccessfulSyncProvider), isNotNull);
     await manager.dispose();
   });
 
@@ -248,8 +258,10 @@ void main() {
     );
     addTearDown(container.dispose);
 
+    final feedbackFuture = container.read(syncFeedbackStreamProvider.future);
     final manager = container.read(syncManagerProvider);
     await manager.trigger(SyncTrigger.explicit);
+    final feedback = await feedbackFuture;
 
     verify(
       () => punchesDao.markError(
@@ -259,6 +271,8 @@ void main() {
         requiresDispute: true,
       ),
     ).called(1);
+    expect(feedback.type, SyncFeedbackType.failure);
+    expect(feedback.failed, 1);
     await manager.dispose();
   });
 
@@ -331,4 +345,83 @@ void main() {
     ).called(1);
     await manager.dispose();
   });
+
+  test(
+    'emits partial feedback when batch mixes success and retry errors',
+    () async {
+      final queueDao = _MockQueueDao();
+      final punchesDao = _MockPunchesDao();
+      final transport = _MockPunchSyncTransport();
+
+      final batches = <List<QueuedPayload>>[
+        [
+          const QueuedPayload(
+            id: 5,
+            entityType: 'punch',
+            attemptCount: 0,
+            payload: {'mobile_uuid': 'ok-id'},
+          ),
+          const QueuedPayload(
+            id: 6,
+            entityType: 'punch',
+            attemptCount: 0,
+            payload: {'mobile_uuid': 'retry-id'},
+          ),
+        ],
+        <QueuedPayload>[],
+      ];
+
+      when(
+        () => queueDao.fetchPending(limit: any(named: 'limit')),
+      ).thenAnswer((_) async => batches.removeAt(0));
+      when(() => queueDao.deleteEntries(any())).thenAnswer((_) async {});
+      when(
+        () => queueDao.recordAttempt(any(), error: any(named: 'error')),
+      ).thenAnswer((_) async {});
+      when(() => punchesDao.markSynced(any())).thenAnswer((_) async {});
+      when(
+        () => punchesDao.markError(
+          any(),
+          errorCode: any(named: 'errorCode'),
+          errorMessage: any(named: 'errorMessage'),
+          requiresDispute: any(named: 'requiresDispute'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => transport.send(
+          session: any(named: 'session'),
+          payloads: any(named: 'payloads'),
+        ),
+      ).thenAnswer(
+        (_) async => const PunchSyncResponse(
+          processed: ['ok-id'],
+          duplicates: [],
+          errors: [
+            PunchSyncError(
+              uuid: 'retry-id',
+              code: 'server_busy',
+              message: 'try later',
+            ),
+          ],
+        ),
+      );
+
+      final container = _buildContainer(
+        queueDao: queueDao,
+        punchesDao: punchesDao,
+        transport: transport,
+      );
+      addTearDown(container.dispose);
+
+      final feedbackFuture = container.read(syncFeedbackStreamProvider.future);
+      final manager = container.read(syncManagerProvider);
+      await manager.trigger(SyncTrigger.explicit);
+      final feedback = await feedbackFuture;
+
+      expect(feedback.type, SyncFeedbackType.partialFailure);
+      expect(feedback.processed, 1);
+      expect(feedback.failed, 1);
+      await manager.dispose();
+    },
+  );
 }
