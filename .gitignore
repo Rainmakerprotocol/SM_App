@@ -1,0 +1,27 @@
+# Workspace-level ignores
+/extracted/
+/flutter/
+/tar.gz/
+
+# Field app build artifacts
+field_app_client/.dart_tool/
+field_app_client/.idea/
+field_app_client/.vscode/
+field_app_client/build/
+field_app_client/ios/Pods/
+field_app_client/ios/.symlinks/
+field_app_client/ios/Flutter/App.framework
+field_app_client/ios/Flutter/Flutter.framework
+field_app_client/ios/Flutter/Generated.xcconfig
+field_app_client/ios/Flutter/ephemeral/
+field_app_client/android/.gradle/
+field_app_client/android/app/build/
+field_app_client/android/local.properties
+
+# QA artifacts and temp logs
+qa/artifacts/
+qa/device_gallery/*/*/raw/
+*.log
+
+# Misc
+.DS_Store
