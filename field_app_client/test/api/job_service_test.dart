@@ -60,6 +60,8 @@ void main() {
                 ],
               },
             ],
+            'api_version': '2025-11-20',
+            'next_cursor': null,
           }),
           200,
         ),
@@ -70,6 +72,8 @@ void main() {
       expect(feed.employeeId, '12');
       expect(feed.jobs, hasLength(1));
       expect(feed.jobs.first.services.first.serviceName, 'Roofing');
+      expect(feed.apiVersion, '2025-11-20');
+      expect(feed.nextCursor, isNull);
     });
   });
 }

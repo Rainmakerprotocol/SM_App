@@ -59,6 +59,18 @@ class JobsDao {
 
   Future<void> upsert(JobsLocalCompanion entry) => _db.upsertJob(entry);
 
+  Future<void> upsertMany(List<JobsLocalCompanion> entries) =>
+      _db.upsertJobs(entries);
+
+  Future<void> upsertFeedState(JobFeedStateLocalCompanion entry) =>
+      _db.upsertJobFeedState(entry);
+
+  Future<JobFeedStateLocalData?> feedState(String employeeId) =>
+      _db.jobFeedState(employeeId);
+
+  Stream<JobFeedStateLocalData?> watchFeedState(String employeeId) =>
+      _db.watchJobFeedState(employeeId);
+
   Future<List<JobsLocalData>> window({
     required DateTime start,
     required DateTime end,

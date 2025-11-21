@@ -8,11 +8,19 @@ import '../core/network/http_client_provider.dart';
 import '../modules/auth/domain/auth_models.dart';
 
 class JobFeed {
-  JobFeed({required this.employeeId, required this.range, required this.jobs});
+  JobFeed({
+    required this.employeeId,
+    required this.range,
+    required this.jobs,
+    this.apiVersion,
+    this.nextCursor,
+  });
 
   final String employeeId;
   final JobFeedRange range;
   final List<JobSummary> jobs;
+  final String? apiVersion;
+  final String? nextCursor;
 
   factory JobFeed.fromJson(Map<String, dynamic> json) {
     return JobFeed(
@@ -23,6 +31,8 @@ class JobFeed {
       jobs: ((json['jobs'] as List?) ?? const [])
           .map((item) => JobSummary.fromJson(item as Map<String, dynamic>))
           .toList(),
+      apiVersion: json['api_version']?.toString(),
+      nextCursor: json['next_cursor']?.toString(),
     );
   }
 }
@@ -215,6 +225,8 @@ class MockJobService implements JobService {
           ],
         ),
       ],
+      apiVersion: '2025-11-20',
+      nextCursor: null,
     );
   }
 }

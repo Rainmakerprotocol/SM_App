@@ -51,6 +51,19 @@ class JobsLocal extends Table {
   Set<Column> get primaryKey => {jobId};
 }
 
+class JobFeedStateLocal extends Table {
+  TextColumn get employeeId => text()();
+  DateTimeColumn get rangeStart => dateTime().nullable()();
+  DateTimeColumn get rangeEnd => dateTime().nullable()();
+  DateTimeColumn get lastRefreshed =>
+      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get apiVersion => text().nullable()();
+  TextColumn get nextCursor => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {employeeId};
+}
+
 class ProfileLocal extends Table {
   TextColumn get employeeId => text()();
   TextColumn get displayName => text()();
@@ -95,6 +108,7 @@ class CorruptQueueEntries extends Table {
   tables: [
     PunchesLocal,
     JobsLocal,
+    JobFeedStateLocal,
     ProfileLocal,
     SyncQueue,
     CorruptQueueEntries,
@@ -106,7 +120,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -132,6 +146,9 @@ class AppDatabase extends _$AppDatabase {
         await migrator.createTable(jobsLocal);
         await _ensureJobsLocalIndexes();
       }
+      if (from < 6) {
+        await migrator.createTable(jobFeedStateLocal);
+      }
     },
   );
 
@@ -139,6 +156,7 @@ class AppDatabase extends _$AppDatabase {
     await batch((batch) {
       batch.deleteAll(punchesLocal);
       batch.deleteAll(jobsLocal);
+      batch.deleteAll(jobFeedStateLocal);
       batch.deleteAll(profileLocal);
       batch.deleteAll(syncQueue);
     });
@@ -307,6 +325,33 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> upsertJob(JobsLocalCompanion entry) {
     return into(jobsLocal).insertOnConflictUpdate(entry);
+  }
+
+  Future<void> upsertJobs(List<JobsLocalCompanion> entries) async {
+    if (entries.isEmpty) {
+      return;
+    }
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(jobsLocal, entries);
+    });
+  }
+
+  Future<void> upsertJobFeedState(JobFeedStateLocalCompanion entry) {
+    return into(jobFeedStateLocal).insertOnConflictUpdate(entry);
+  }
+
+  Future<JobFeedStateLocalData?> jobFeedState(String employeeId) {
+    return (select(jobFeedStateLocal)
+          ..where((tbl) => tbl.employeeId.equals(employeeId))
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  Stream<JobFeedStateLocalData?> watchJobFeedState(String employeeId) {
+    return (select(jobFeedStateLocal)
+          ..where((tbl) => tbl.employeeId.equals(employeeId))
+          ..limit(1))
+        .watchSingleOrNull();
   }
 
   Future<List<JobsLocalData>> jobsForWindow({

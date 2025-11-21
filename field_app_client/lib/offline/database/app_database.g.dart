@@ -1650,6 +1650,445 @@ class JobsLocalCompanion extends UpdateCompanion<JobsLocalData> {
   }
 }
 
+class $JobFeedStateLocalTable extends JobFeedStateLocal
+    with TableInfo<$JobFeedStateLocalTable, JobFeedStateLocalData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $JobFeedStateLocalTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _employeeIdMeta = const VerificationMeta(
+    'employeeId',
+  );
+  @override
+  late final GeneratedColumn<String> employeeId = GeneratedColumn<String>(
+    'employee_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rangeStartMeta = const VerificationMeta(
+    'rangeStart',
+  );
+  @override
+  late final GeneratedColumn<DateTime> rangeStart = GeneratedColumn<DateTime>(
+    'range_start',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rangeEndMeta = const VerificationMeta(
+    'rangeEnd',
+  );
+  @override
+  late final GeneratedColumn<DateTime> rangeEnd = GeneratedColumn<DateTime>(
+    'range_end',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastRefreshedMeta = const VerificationMeta(
+    'lastRefreshed',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastRefreshed =
+      GeneratedColumn<DateTime>(
+        'last_refreshed',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+        defaultValue: currentDateAndTime,
+      );
+  static const VerificationMeta _apiVersionMeta = const VerificationMeta(
+    'apiVersion',
+  );
+  @override
+  late final GeneratedColumn<String> apiVersion = GeneratedColumn<String>(
+    'api_version',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nextCursorMeta = const VerificationMeta(
+    'nextCursor',
+  );
+  @override
+  late final GeneratedColumn<String> nextCursor = GeneratedColumn<String>(
+    'next_cursor',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    employeeId,
+    rangeStart,
+    rangeEnd,
+    lastRefreshed,
+    apiVersion,
+    nextCursor,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'job_feed_state_local';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<JobFeedStateLocalData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('employee_id')) {
+      context.handle(
+        _employeeIdMeta,
+        employeeId.isAcceptableOrUnknown(data['employee_id']!, _employeeIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_employeeIdMeta);
+    }
+    if (data.containsKey('range_start')) {
+      context.handle(
+        _rangeStartMeta,
+        rangeStart.isAcceptableOrUnknown(data['range_start']!, _rangeStartMeta),
+      );
+    }
+    if (data.containsKey('range_end')) {
+      context.handle(
+        _rangeEndMeta,
+        rangeEnd.isAcceptableOrUnknown(data['range_end']!, _rangeEndMeta),
+      );
+    }
+    if (data.containsKey('last_refreshed')) {
+      context.handle(
+        _lastRefreshedMeta,
+        lastRefreshed.isAcceptableOrUnknown(
+          data['last_refreshed']!,
+          _lastRefreshedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('api_version')) {
+      context.handle(
+        _apiVersionMeta,
+        apiVersion.isAcceptableOrUnknown(data['api_version']!, _apiVersionMeta),
+      );
+    }
+    if (data.containsKey('next_cursor')) {
+      context.handle(
+        _nextCursorMeta,
+        nextCursor.isAcceptableOrUnknown(data['next_cursor']!, _nextCursorMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {employeeId};
+  @override
+  JobFeedStateLocalData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return JobFeedStateLocalData(
+      employeeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}employee_id'],
+      )!,
+      rangeStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}range_start'],
+      ),
+      rangeEnd: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}range_end'],
+      ),
+      lastRefreshed: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_refreshed'],
+      )!,
+      apiVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}api_version'],
+      ),
+      nextCursor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}next_cursor'],
+      ),
+    );
+  }
+
+  @override
+  $JobFeedStateLocalTable createAlias(String alias) {
+    return $JobFeedStateLocalTable(attachedDatabase, alias);
+  }
+}
+
+class JobFeedStateLocalData extends DataClass
+    implements Insertable<JobFeedStateLocalData> {
+  final String employeeId;
+  final DateTime? rangeStart;
+  final DateTime? rangeEnd;
+  final DateTime lastRefreshed;
+  final String? apiVersion;
+  final String? nextCursor;
+  const JobFeedStateLocalData({
+    required this.employeeId,
+    this.rangeStart,
+    this.rangeEnd,
+    required this.lastRefreshed,
+    this.apiVersion,
+    this.nextCursor,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['employee_id'] = Variable<String>(employeeId);
+    if (!nullToAbsent || rangeStart != null) {
+      map['range_start'] = Variable<DateTime>(rangeStart);
+    }
+    if (!nullToAbsent || rangeEnd != null) {
+      map['range_end'] = Variable<DateTime>(rangeEnd);
+    }
+    map['last_refreshed'] = Variable<DateTime>(lastRefreshed);
+    if (!nullToAbsent || apiVersion != null) {
+      map['api_version'] = Variable<String>(apiVersion);
+    }
+    if (!nullToAbsent || nextCursor != null) {
+      map['next_cursor'] = Variable<String>(nextCursor);
+    }
+    return map;
+  }
+
+  JobFeedStateLocalCompanion toCompanion(bool nullToAbsent) {
+    return JobFeedStateLocalCompanion(
+      employeeId: Value(employeeId),
+      rangeStart: rangeStart == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rangeStart),
+      rangeEnd: rangeEnd == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rangeEnd),
+      lastRefreshed: Value(lastRefreshed),
+      apiVersion: apiVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(apiVersion),
+      nextCursor: nextCursor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextCursor),
+    );
+  }
+
+  factory JobFeedStateLocalData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return JobFeedStateLocalData(
+      employeeId: serializer.fromJson<String>(json['employeeId']),
+      rangeStart: serializer.fromJson<DateTime?>(json['rangeStart']),
+      rangeEnd: serializer.fromJson<DateTime?>(json['rangeEnd']),
+      lastRefreshed: serializer.fromJson<DateTime>(json['lastRefreshed']),
+      apiVersion: serializer.fromJson<String?>(json['apiVersion']),
+      nextCursor: serializer.fromJson<String?>(json['nextCursor']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'employeeId': serializer.toJson<String>(employeeId),
+      'rangeStart': serializer.toJson<DateTime?>(rangeStart),
+      'rangeEnd': serializer.toJson<DateTime?>(rangeEnd),
+      'lastRefreshed': serializer.toJson<DateTime>(lastRefreshed),
+      'apiVersion': serializer.toJson<String?>(apiVersion),
+      'nextCursor': serializer.toJson<String?>(nextCursor),
+    };
+  }
+
+  JobFeedStateLocalData copyWith({
+    String? employeeId,
+    Value<DateTime?> rangeStart = const Value.absent(),
+    Value<DateTime?> rangeEnd = const Value.absent(),
+    DateTime? lastRefreshed,
+    Value<String?> apiVersion = const Value.absent(),
+    Value<String?> nextCursor = const Value.absent(),
+  }) => JobFeedStateLocalData(
+    employeeId: employeeId ?? this.employeeId,
+    rangeStart: rangeStart.present ? rangeStart.value : this.rangeStart,
+    rangeEnd: rangeEnd.present ? rangeEnd.value : this.rangeEnd,
+    lastRefreshed: lastRefreshed ?? this.lastRefreshed,
+    apiVersion: apiVersion.present ? apiVersion.value : this.apiVersion,
+    nextCursor: nextCursor.present ? nextCursor.value : this.nextCursor,
+  );
+  JobFeedStateLocalData copyWithCompanion(JobFeedStateLocalCompanion data) {
+    return JobFeedStateLocalData(
+      employeeId: data.employeeId.present
+          ? data.employeeId.value
+          : this.employeeId,
+      rangeStart: data.rangeStart.present
+          ? data.rangeStart.value
+          : this.rangeStart,
+      rangeEnd: data.rangeEnd.present ? data.rangeEnd.value : this.rangeEnd,
+      lastRefreshed: data.lastRefreshed.present
+          ? data.lastRefreshed.value
+          : this.lastRefreshed,
+      apiVersion: data.apiVersion.present
+          ? data.apiVersion.value
+          : this.apiVersion,
+      nextCursor: data.nextCursor.present
+          ? data.nextCursor.value
+          : this.nextCursor,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('JobFeedStateLocalData(')
+          ..write('employeeId: $employeeId, ')
+          ..write('rangeStart: $rangeStart, ')
+          ..write('rangeEnd: $rangeEnd, ')
+          ..write('lastRefreshed: $lastRefreshed, ')
+          ..write('apiVersion: $apiVersion, ')
+          ..write('nextCursor: $nextCursor')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    employeeId,
+    rangeStart,
+    rangeEnd,
+    lastRefreshed,
+    apiVersion,
+    nextCursor,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is JobFeedStateLocalData &&
+          other.employeeId == this.employeeId &&
+          other.rangeStart == this.rangeStart &&
+          other.rangeEnd == this.rangeEnd &&
+          other.lastRefreshed == this.lastRefreshed &&
+          other.apiVersion == this.apiVersion &&
+          other.nextCursor == this.nextCursor);
+}
+
+class JobFeedStateLocalCompanion
+    extends UpdateCompanion<JobFeedStateLocalData> {
+  final Value<String> employeeId;
+  final Value<DateTime?> rangeStart;
+  final Value<DateTime?> rangeEnd;
+  final Value<DateTime> lastRefreshed;
+  final Value<String?> apiVersion;
+  final Value<String?> nextCursor;
+  final Value<int> rowid;
+  const JobFeedStateLocalCompanion({
+    this.employeeId = const Value.absent(),
+    this.rangeStart = const Value.absent(),
+    this.rangeEnd = const Value.absent(),
+    this.lastRefreshed = const Value.absent(),
+    this.apiVersion = const Value.absent(),
+    this.nextCursor = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  JobFeedStateLocalCompanion.insert({
+    required String employeeId,
+    this.rangeStart = const Value.absent(),
+    this.rangeEnd = const Value.absent(),
+    this.lastRefreshed = const Value.absent(),
+    this.apiVersion = const Value.absent(),
+    this.nextCursor = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : employeeId = Value(employeeId);
+  static Insertable<JobFeedStateLocalData> custom({
+    Expression<String>? employeeId,
+    Expression<DateTime>? rangeStart,
+    Expression<DateTime>? rangeEnd,
+    Expression<DateTime>? lastRefreshed,
+    Expression<String>? apiVersion,
+    Expression<String>? nextCursor,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (employeeId != null) 'employee_id': employeeId,
+      if (rangeStart != null) 'range_start': rangeStart,
+      if (rangeEnd != null) 'range_end': rangeEnd,
+      if (lastRefreshed != null) 'last_refreshed': lastRefreshed,
+      if (apiVersion != null) 'api_version': apiVersion,
+      if (nextCursor != null) 'next_cursor': nextCursor,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  JobFeedStateLocalCompanion copyWith({
+    Value<String>? employeeId,
+    Value<DateTime?>? rangeStart,
+    Value<DateTime?>? rangeEnd,
+    Value<DateTime>? lastRefreshed,
+    Value<String?>? apiVersion,
+    Value<String?>? nextCursor,
+    Value<int>? rowid,
+  }) {
+    return JobFeedStateLocalCompanion(
+      employeeId: employeeId ?? this.employeeId,
+      rangeStart: rangeStart ?? this.rangeStart,
+      rangeEnd: rangeEnd ?? this.rangeEnd,
+      lastRefreshed: lastRefreshed ?? this.lastRefreshed,
+      apiVersion: apiVersion ?? this.apiVersion,
+      nextCursor: nextCursor ?? this.nextCursor,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (employeeId.present) {
+      map['employee_id'] = Variable<String>(employeeId.value);
+    }
+    if (rangeStart.present) {
+      map['range_start'] = Variable<DateTime>(rangeStart.value);
+    }
+    if (rangeEnd.present) {
+      map['range_end'] = Variable<DateTime>(rangeEnd.value);
+    }
+    if (lastRefreshed.present) {
+      map['last_refreshed'] = Variable<DateTime>(lastRefreshed.value);
+    }
+    if (apiVersion.present) {
+      map['api_version'] = Variable<String>(apiVersion.value);
+    }
+    if (nextCursor.present) {
+      map['next_cursor'] = Variable<String>(nextCursor.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('JobFeedStateLocalCompanion(')
+          ..write('employeeId: $employeeId, ')
+          ..write('rangeStart: $rangeStart, ')
+          ..write('rangeEnd: $rangeEnd, ')
+          ..write('lastRefreshed: $lastRefreshed, ')
+          ..write('apiVersion: $apiVersion, ')
+          ..write('nextCursor: $nextCursor, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $ProfileLocalTable extends ProfileLocal
     with TableInfo<$ProfileLocalTable, ProfileLocalData> {
   @override
@@ -3156,6 +3595,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $PunchesLocalTable punchesLocal = $PunchesLocalTable(this);
   late final $JobsLocalTable jobsLocal = $JobsLocalTable(this);
+  late final $JobFeedStateLocalTable jobFeedStateLocal =
+      $JobFeedStateLocalTable(this);
   late final $ProfileLocalTable profileLocal = $ProfileLocalTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $CorruptQueueEntriesTable corruptQueueEntries =
@@ -3167,6 +3608,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     punchesLocal,
     jobsLocal,
+    jobFeedStateLocal,
     profileLocal,
     syncQueue,
     corruptQueueEntries,
@@ -3933,6 +4375,248 @@ typedef $$JobsLocalTableProcessedTableManager =
         BaseReferences<_$AppDatabase, $JobsLocalTable, JobsLocalData>,
       ),
       JobsLocalData,
+      PrefetchHooks Function()
+    >;
+typedef $$JobFeedStateLocalTableCreateCompanionBuilder =
+    JobFeedStateLocalCompanion Function({
+      required String employeeId,
+      Value<DateTime?> rangeStart,
+      Value<DateTime?> rangeEnd,
+      Value<DateTime> lastRefreshed,
+      Value<String?> apiVersion,
+      Value<String?> nextCursor,
+      Value<int> rowid,
+    });
+typedef $$JobFeedStateLocalTableUpdateCompanionBuilder =
+    JobFeedStateLocalCompanion Function({
+      Value<String> employeeId,
+      Value<DateTime?> rangeStart,
+      Value<DateTime?> rangeEnd,
+      Value<DateTime> lastRefreshed,
+      Value<String?> apiVersion,
+      Value<String?> nextCursor,
+      Value<int> rowid,
+    });
+
+class $$JobFeedStateLocalTableFilterComposer
+    extends Composer<_$AppDatabase, $JobFeedStateLocalTable> {
+  $$JobFeedStateLocalTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get employeeId => $composableBuilder(
+    column: $table.employeeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get rangeStart => $composableBuilder(
+    column: $table.rangeStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get rangeEnd => $composableBuilder(
+    column: $table.rangeEnd,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastRefreshed => $composableBuilder(
+    column: $table.lastRefreshed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get apiVersion => $composableBuilder(
+    column: $table.apiVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nextCursor => $composableBuilder(
+    column: $table.nextCursor,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$JobFeedStateLocalTableOrderingComposer
+    extends Composer<_$AppDatabase, $JobFeedStateLocalTable> {
+  $$JobFeedStateLocalTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get employeeId => $composableBuilder(
+    column: $table.employeeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get rangeStart => $composableBuilder(
+    column: $table.rangeStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get rangeEnd => $composableBuilder(
+    column: $table.rangeEnd,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastRefreshed => $composableBuilder(
+    column: $table.lastRefreshed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get apiVersion => $composableBuilder(
+    column: $table.apiVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nextCursor => $composableBuilder(
+    column: $table.nextCursor,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$JobFeedStateLocalTableAnnotationComposer
+    extends Composer<_$AppDatabase, $JobFeedStateLocalTable> {
+  $$JobFeedStateLocalTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get employeeId => $composableBuilder(
+    column: $table.employeeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get rangeStart => $composableBuilder(
+    column: $table.rangeStart,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get rangeEnd =>
+      $composableBuilder(column: $table.rangeEnd, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastRefreshed => $composableBuilder(
+    column: $table.lastRefreshed,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get apiVersion => $composableBuilder(
+    column: $table.apiVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nextCursor => $composableBuilder(
+    column: $table.nextCursor,
+    builder: (column) => column,
+  );
+}
+
+class $$JobFeedStateLocalTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $JobFeedStateLocalTable,
+          JobFeedStateLocalData,
+          $$JobFeedStateLocalTableFilterComposer,
+          $$JobFeedStateLocalTableOrderingComposer,
+          $$JobFeedStateLocalTableAnnotationComposer,
+          $$JobFeedStateLocalTableCreateCompanionBuilder,
+          $$JobFeedStateLocalTableUpdateCompanionBuilder,
+          (
+            JobFeedStateLocalData,
+            BaseReferences<
+              _$AppDatabase,
+              $JobFeedStateLocalTable,
+              JobFeedStateLocalData
+            >,
+          ),
+          JobFeedStateLocalData,
+          PrefetchHooks Function()
+        > {
+  $$JobFeedStateLocalTableTableManager(
+    _$AppDatabase db,
+    $JobFeedStateLocalTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$JobFeedStateLocalTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$JobFeedStateLocalTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$JobFeedStateLocalTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> employeeId = const Value.absent(),
+                Value<DateTime?> rangeStart = const Value.absent(),
+                Value<DateTime?> rangeEnd = const Value.absent(),
+                Value<DateTime> lastRefreshed = const Value.absent(),
+                Value<String?> apiVersion = const Value.absent(),
+                Value<String?> nextCursor = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => JobFeedStateLocalCompanion(
+                employeeId: employeeId,
+                rangeStart: rangeStart,
+                rangeEnd: rangeEnd,
+                lastRefreshed: lastRefreshed,
+                apiVersion: apiVersion,
+                nextCursor: nextCursor,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String employeeId,
+                Value<DateTime?> rangeStart = const Value.absent(),
+                Value<DateTime?> rangeEnd = const Value.absent(),
+                Value<DateTime> lastRefreshed = const Value.absent(),
+                Value<String?> apiVersion = const Value.absent(),
+                Value<String?> nextCursor = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => JobFeedStateLocalCompanion.insert(
+                employeeId: employeeId,
+                rangeStart: rangeStart,
+                rangeEnd: rangeEnd,
+                lastRefreshed: lastRefreshed,
+                apiVersion: apiVersion,
+                nextCursor: nextCursor,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$JobFeedStateLocalTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $JobFeedStateLocalTable,
+      JobFeedStateLocalData,
+      $$JobFeedStateLocalTableFilterComposer,
+      $$JobFeedStateLocalTableOrderingComposer,
+      $$JobFeedStateLocalTableAnnotationComposer,
+      $$JobFeedStateLocalTableCreateCompanionBuilder,
+      $$JobFeedStateLocalTableUpdateCompanionBuilder,
+      (
+        JobFeedStateLocalData,
+        BaseReferences<
+          _$AppDatabase,
+          $JobFeedStateLocalTable,
+          JobFeedStateLocalData
+        >,
+      ),
+      JobFeedStateLocalData,
       PrefetchHooks Function()
     >;
 typedef $$ProfileLocalTableCreateCompanionBuilder =
@@ -4715,6 +5399,8 @@ class $AppDatabaseManager {
       $$PunchesLocalTableTableManager(_db, _db.punchesLocal);
   $$JobsLocalTableTableManager get jobsLocal =>
       $$JobsLocalTableTableManager(_db, _db.jobsLocal);
+  $$JobFeedStateLocalTableTableManager get jobFeedStateLocal =>
+      $$JobFeedStateLocalTableTableManager(_db, _db.jobFeedStateLocal);
   $$ProfileLocalTableTableManager get profileLocal =>
       $$ProfileLocalTableTableManager(_db, _db.profileLocal);
   $$SyncQueueTableTableManager get syncQueue =>

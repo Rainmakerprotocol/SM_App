@@ -889,9 +889,9 @@ This document expands **Phase 1-3** into precise, sequential engineering tasks n
 
 ---
 
-## **1. Job List System Implementation**
+### **1. Job List System Implementation**
 
-## **1.1 Create Local Table: `jobs_local`**
+### **1.1 Create Local Table: `jobs_local`**
 
 - [x] Define columns: job_id, service_id, customer_name, address, scheduled_date, foreman_id, crew_list JSON, last_updated, synced flag.
 - [x] Persist `crew_hash` for roster-drift detection and default crew JSON payloads.
@@ -908,32 +908,42 @@ This document expands **Phase 1-3** into precise, sequential engineering tasks n
 
 **Future:** QA will snapshot real devices, and upcoming steps (Sections 1.2–1.5) will populate the table from `/api/mobile/jobs/{employee_id}` and drive the Job List + Foreman views.
 
-### **1.2 Job API Fetch**
+#### **1.2 Job API Fetch**
 
-Call:
-`GET /api/mobile/jobs/{employee_id}`
+- [x] Implement REST/mock clients for `GET /api/mobile/jobs/{employee_id}` with optional range filters.
+- [x] Persist each payload to `jobs_local` plus `last_refreshed` timestamps via `JobsRepository.refreshJobs`.
+- [x] Store `api_version` + `next_cursor` in `job_feed_state_local` so compatibility/pagination checks survive offline.
+- [x] Expose feed metadata + range helpers through `JobsDao` for downstream UI/foreman surfaces.
 
-Store response in:
+**Status Checklist (2025-11-21):**
 
-- `jobs_local`
-- Mark timestamp for refresh
-- Persist `api_version` with each response to detect incompatibilities if backend contract changes.
-- Handle pagination (if backend adds it later) by storing `next_cursor` metadata even if Phase 1 uses single-page results.
+- [x] Copilot — Added `JobFeed` DTOs, `RestJobService` + mock provider, job feed state table, and repository refresh logic with hashed crew payloads; verified via `test/modules/jobs/jobs_repository_test.dart` and logged evidence in `qa/logs/job_feed_refresh_tests_2025-11-21.md` after running the 36-test Flutter suite.
+- [ ] QA — Execute Postman/Charles mock runs + hardware sync drills to capture real API responses, compare `api_version`, and document pagination timing.
+
+**Past:** Jobs API requirements existed only on paper, so no client/provider stored compatibility metadata or refresh timestamps locally.
+
+**Present:** Mobile now calls the jobs endpoint (mockable), upserts job rows + feed metadata, and tracks `api_version`/`next_cursor` for future contract drift—all backed by automated tests + QA log references.
+
+**Future:** QA will replay the flow against staging once endpoints go live, capture raw responses + device logs, and ensure pagination tokens + schedule windows align with backend expectations before the Job List UI ships.
 
 #### **1.3 Build Job List Screen**
 
-Sections:
+- [x] Render Today/This Week/Last Week buckets from `jobs_local` caches with chronological sorting.
+- [x] Display crew chips, job/service labels, and "updated" timestamps sourced from Drift metadata.
+- [x] Surface feed status card referencing `job_feed_state_local` (`last_refreshed`, range, API version).
+- [x] Add pull-to-refresh hook calling `JobsRepository.refreshJobs` (mockable) for manual syncs.
+- [ ] Layer quick filters (“Needs Love”, “Completed”) once backend exposes status codes.
 
-- Today’s Jobs
-- This Week
-- Last Week
+**Status Checklist (2025-11-21):**
 
-Sort:
+- [x] Copilot — Implemented `job_list_controller.dart` providers + `JobListScreen` UI consuming cached buckets, crew chips, and feed metadata; added bucketing tests in `test/modules/jobs/job_list_controller_test.dart` with evidence in `qa/logs/job_list_ui_tests_2025-11-21.md` after the 38-test Flutter run.
+- [ ] QA — Capture device video + screenshots showing pull-to-refresh, section headers, and crew chips once the jobs endpoint is available in staging.
 
-- By date
-- By start time
-- Provide quick filters (e.g., "Needs Love", "Completed") once backend exposes status codes.
-- Show sync/refresh indicator tied to `last_updated` so users know how fresh the list is.
+**Past:** The Jobs tab showed hardcoded sample cards, so there was no linkage to the local schema, no refresh path, and no way to prove readiness for Phase 1-3 timelines.
+
+**Present:** The UI now streams data from `jobs_local`, groups it into Today/This Week/Last Week, exposes crew rosters + job/service labels, and displays feed freshness sourced from `job_feed_state_local`; automated tests guard the bucket logic.
+
+**Future:** When backend filters and job-status codes go live, add the quick filter chips + Postman-backed screenshots to the QA log, then extend the screen with detail modals per Section 1.4.
 
 #### **1.4 Job Detail Modal**
 
