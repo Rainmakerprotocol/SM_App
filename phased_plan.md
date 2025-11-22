@@ -85,6 +85,27 @@ These are the micro-steps developers must complete to properly initialize the pr
 
 ### **1. Project Initialization (Mobile App Base Setup)**
 
+#### **1.x Development Tooling Readiness**
+
+- [x] Install Android Studio or standalone Android SDK and point Flutter to it via `flutter config --android-sdk <path>` so Android builds/runs are unblocked.
+- [ ] Provision at least one Android emulator or physical device profile for QA capture; document its OS level inside `qa/logs/tooling_readiness_2025-11-21.md` once available.
+- [x] Install Chrome (or set the `CHROME_EXECUTABLE` env var) so Flutter web targets compile for future CI smoke tests.
+- [x] Verify Linux desktop target (current `flutter doctor` passes apart from optional `eglinfo`; install `mesa-utils` when GPU validation is required).
+- [x] Capture a recurring `flutter doctor -v` output in `qa/logs/tooling_readiness_2025-11-21.md` after each major tooling change to prove parity.
+
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Ran `flutter doctor` in the dev container; Linux desktop target is green, but Android SDK/emulator were missing before the new SDK install (see evidence below).
+- [x] Copilot — Installed the Android SDK packages + BuildTools and re-ran `flutter doctor` with evidence logged (`qa/logs/tooling_readiness_2025-11-21.md`).
+- [x] Copilot — Installed Chrome Stable 142 and captured the passing `flutter doctor -v` output in `qa/logs/tooling_readiness_2025-11-21.md`.
+- [ ] Copilot — Provision at least one Android emulator or physical device profile, record OS/API level, and link screenshots/logs in the QA folder.
+
+**Past:** Tooling expectations lived only in tribal knowledge; the plan never enumerated the Flutter platform requirements, so Phase 1-3 work proceeded without ensuring Android/web builds were even possible.
+
+**Present:** Android SDK + BuildTools now live under `/workspaces/SM_App/android_sdk`, Flutter is pointed at that path, Chrome Stable 142 is installed, and the latest `flutter doctor -v` capture (with zero issues) is logged in `qa/logs/tooling_readiness_2025-11-21.md`.
+
+**Future:** Finish provisioning an emulator/physical device profile and keep appending `flutter doctor -v` captures to the QA log before closing any hardware-dependent QA tasks (e.g., §1.4/§1.5 video capture).
+
 ### **1.1 Choose Tech Stack**
 
 - Decide between **Flutter** (preferred) or **React Native**.
@@ -947,26 +968,39 @@ This document expands **Phase 1-3** into precise, sequential engineering tasks n
 
 #### **1.4 Job Detail Modal**
 
-Includes:
+- [x] Render Job ID, service label, customer title, and scheduled date/time pulled from `jobs_local` inside a modal surface.
+- [x] Show the address (tap target reserved for Google/Apple Maps once permissions clear) plus crew roster with full chip list.
+- [x] Display relative `last_updated` copy sourced from Drift metadata so techs know when job data last synced.
+- [x] Add action buttons: `View Route`, `Call Customer`, `Copy Job ID` (route/call currently show snackbars until OS intent permissions are finalized; clipboard wiring is live).
 
-- Job ID
-- Service list
-- Customer name
-- Address (tap → Google/Apple Maps)
-- Crew list
-- Scheduled date & time
-- Buttons: `View Route`, `Call Customer`, `Copy Job ID` (wired to OS intents once permissions confirmed).
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Added `JobDetailSheet` + modal plumbing in `field_app_client/lib/modules/jobs/presentation/job_list_screen.dart`, hooked job cards to the sheet, and implemented snackbars/clipboard helpers; verified via `flutter test` (38 cases) with evidence in `qa/logs/job_detail_modal_tests_2025-11-21.md`.
+- [ ] QA — Capture on-device modal video showing crew chips, route/call snackbars, and clipboard toast once staging data + OS intent testing is available.
+
+**Past:** Job cards only displayed summary rows, leaving no place for crew rollups, addresses, or quick actions, and the UI could not expose sync timestamps per job.
+
+**Present:** Tapping a job now opens `JobDetailSheet`, which surfaces all metadata from the Drift cache, shows full crew rosters, and offers quick action CTAs (route/call placeholders plus live Copy Job ID) while reusing the bucket data sources.
+
+**Future:** Replace the placeholder snackbars with real Google/Apple Maps deep links and telephony intents once permission scaffolding lands, then log staging screenshots showing both platforms before moving to the Foreman Job View (Section 1.5). Hardware capture is blocked on the tooling readiness checklist above; record videos + screenshots under `qa/device_gallery/phase1/job_detail_modal/` as soon as Android/iOS build targets are restored.
 
 #### **1.5 Foreman Job View**
 
-Foreman sees:
+- [x] Surface a ±14-day window of jobs with crew rosters sourced from `jobs_local`, scoped to the signed-in foreman when IDs are provided.
+- [x] Merge local punch telemetry to show crew presence (IN/OUT/break), unsynced punch badges, and highlight off-assignment employees.
+- [x] Display per-job unsynced punch counts plus drill-down modals detailing current vs assigned job, punch source (job clock vs mobile), and last punch timestamps.
+- [x] Embed the new pane within the Jobs tab so foremen can review issues without leaving the main workflow.
 
-- Jobs ±14 days
-- Full crew list per job
-- Crew punch statuses (IN/OUT)
-- Any unsynced punches for the crew
-- Provide drill-down to each crew member’s current job vs assigned job to flag potential mis-punches.
-- Display job-clock vs mobile source badges so foremen understand where data originated.
+**Status Checklist (2025-11-21):**
+
+- [x] Copilot — Added `foreman_job_controller.dart` aggregating jobs+punches, extended `PunchesDao` with a live stream, and built `ForemanJobsPane` cards (crew chips, alerts, drill-down modal) wired into `job_list_screen.dart`; validated via `flutter test` (41 cases) plus targeted unit coverage in `test/modules/jobs/foreman_job_controller_test.dart` with QA log `qa/logs/foreman_job_view_tests_2025-11-21.md`.
+- [ ] QA — Capture device video of the Foreman pane showing unsynced banners, crew info chips, and drill-down modal once staging data + OS intent testing is unblocked.
+
+**Past:** Foremen had no visibility inside the mobile client, so local punch telemetry could not flag off-assignment crew members or pending sync issues before escalation.
+
+**Present:** The Jobs tab now includes a Foreman window that streams cached jobs ±14 days, overlays crew punch states (including unsynced counts and source badges), and offers per-crew drill-down modals so field leads can triage discrepancies quickly even while offline.
+
+**Future:** When backend ACLs + live crew feeds land, wire real map/call intents into the drill-down sheet, add pagination for crews >10 members, and record hardware proof (video + screenshots) for the QA gallery before expanding into the dedicated Foreman tab outlined in later phases. As with §1.4, do not mark QA complete until the tooling readiness tasks (Android SDK, Chrome, device provisioning) are resolved and the footage lives under `qa/device_gallery/phase1/foreman_view/`.
 
 ---
 

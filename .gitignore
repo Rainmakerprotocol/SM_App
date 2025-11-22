@@ -2,6 +2,7 @@
 /extracted/
 /flutter/
 /tar.gz/
+/android_sdk/
 
 # Field app build artifacts
 field_app_client/.dart_tool/

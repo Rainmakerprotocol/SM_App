@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/job_list_controller.dart';
+import 'foreman_job_view.dart';
 
 class JobListScreen extends ConsumerWidget {
   const JobListScreen({super.key});
@@ -58,6 +60,7 @@ class _JobListView extends StatelessWidget {
         _JobSection(title: 'This Week', jobs: buckets.thisWeek),
         const SizedBox(height: 24),
         _JobSection(title: 'Last Week', jobs: buckets.lastWeek),
+        const ForemanJobsPane(),
         if (buckets.isEmpty)
           const Padding(
             padding: EdgeInsets.only(top: 32),
@@ -165,77 +168,244 @@ class _JobCard extends StatelessWidget {
     final updatedLabel = _formatRelative(job.lastUpdated);
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        job.title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      if (job.address != null)
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _showDetails(context),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          job.address!,
+                          job.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        if (job.address != null)
+                          Text(
+                            job.address!,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        Text(
+                          'Job ${job.jobId} • Service ${job.serviceId}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
                       Text(
-                        'Job ${job.jobId} • Service ${job.serviceId}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        dateLabel,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      Text(
+                        timeLabel,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      dateLabel,
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                    Text(
-                      timeLabel,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (job.hasCrew)
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  for (final member in job.crewNames.take(6))
-                    Chip(label: Text(member)),
-                  if (job.crewNames.length > 6)
-                    Chip(label: Text('+${job.crewNames.length - 6} more')),
                 ],
-              )
-            else
-              Text(
-                'Crew roster pending',
-                style: Theme.of(context).textTheme.bodySmall,
               ),
-            const SizedBox(height: 8),
-            if (updatedLabel != null)
-              Text(
-                'Updated $updatedLabel',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-              ),
-          ],
+              const SizedBox(height: 12),
+              if (job.hasCrew)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    for (final member in job.crewNames.take(6))
+                      Chip(label: Text(member)),
+                    if (job.crewNames.length > 6)
+                      Chip(label: Text('+${job.crewNames.length - 6} more')),
+                  ],
+                )
+              else
+                Text(
+                  'Crew roster pending',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              const SizedBox(height: 8),
+              if (updatedLabel != null)
+                Text(
+                  'Updated $updatedLabel',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  void _showDetails(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => JobDetailSheet(job: job),
+    );
+  }
+}
+
+class JobDetailSheet extends StatelessWidget {
+  const JobDetailSheet({super.key, required this.job});
+
+  final JobListEntry job;
+
+  @override
+  Widget build(BuildContext context) {
+    final timeOfDay = TimeOfDay.fromDateTime(job.scheduledDate);
+    final timeLabel = MaterialLocalizations.of(
+      context,
+    ).formatTimeOfDay(timeOfDay);
+    final dateLabel = _formatDate(job.scheduledDate);
+    final longRelative = _formatRelative(job.lastUpdated);
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          job.title,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Job ${job.jobId} • Service ${job.serviceId}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Close',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.event),
+                title: Text('$dateLabel · $timeLabel'),
+                subtitle: const Text('Scheduled date & time'),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.place),
+                title: Text(job.address ?? 'Address pending'),
+                subtitle: const Text('Tap route to open maps'),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.group),
+                title: Text(
+                  job.hasCrew
+                      ? '${job.crewNames.length} crew members'
+                      : 'Crew roster pending',
+                ),
+                subtitle: job.hasCrew
+                    ? Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          for (final member in job.crewNames)
+                            Chip(label: Text(member)),
+                        ],
+                      )
+                    : null,
+              ),
+              if (longRelative != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Last updated $longRelative',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                  ),
+                ),
+              const SizedBox(height: 24),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  FilledButton.icon(
+                    onPressed: () => _showRouteSnack(context),
+                    icon: const Icon(Icons.route),
+                    label: const Text('View Route'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _showCallSnack(context),
+                    icon: const Icon(Icons.phone),
+                    label: const Text('Call Customer'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _copyJobId(context),
+                    icon: const Icon(Icons.copy),
+                    label: const Text('Copy Job ID'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showRouteSnack(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          job.address == null
+              ? 'Route link unavailable — address missing.'
+              : 'Route preview opening when mapping is wired.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showCallSnack(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Call customer shortcut coming soon.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _copyJobId(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: job.jobId));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Job ID copied to clipboard'),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

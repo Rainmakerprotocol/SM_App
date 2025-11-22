@@ -168,6 +168,16 @@ class AppDatabase extends _$AppDatabase {
     )..where((tbl) => tbl.synced.equals(false))).get();
   }
 
+  Stream<List<PunchesLocalData>> watchAllPunches() {
+    return (select(punchesLocal)..orderBy([
+          (tbl) => OrderingTerm(
+            expression: tbl.timestampDevice,
+            mode: OrderingMode.desc,
+          ),
+        ]))
+        .watch();
+  }
+
   Future<void> upsertPunch(PunchesLocalCompanion entry) {
     return into(punchesLocal).insertOnConflictUpdate(entry);
   }

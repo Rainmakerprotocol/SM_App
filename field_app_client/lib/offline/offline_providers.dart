@@ -34,6 +34,8 @@ class PunchesDao {
   Stream<PendingPunchSnapshot> watchPendingSnapshot() =>
       _db.watchPendingPunchSnapshot();
 
+  Stream<List<PunchesLocalData>> watchAll() => _db.watchAllPunches();
+
   Future<void> markError(
     String punchId, {
     required String errorCode,
