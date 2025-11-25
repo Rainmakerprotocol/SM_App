@@ -1,6 +1,6 @@
 # Sync Stress Tests — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-2 §8.3 (Sync Stress Tests)
 - **Command:** `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`
 - **Result:** Pass (31 tests)

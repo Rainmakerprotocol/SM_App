@@ -1,6 +1,6 @@
 # Local Punch Storage Validation — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-2 §3 (Local Punch Storage System)
 - **Commands:**
   1. `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`

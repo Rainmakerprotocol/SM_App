@@ -1,6 +1,6 @@
 # Offline Warning Banner Tests — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-2 §7.1 (Offline warning banner)
 - **Command:** `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`
 - **Result:** Pass (26 tests)

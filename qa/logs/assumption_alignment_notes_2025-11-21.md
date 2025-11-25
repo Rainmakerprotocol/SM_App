@@ -1,6 +1,6 @@
 # Assumption Alignment Notes — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-2 interim decisions (`DL-004`, `DL-005`, `DL-006`).
 - **Context:** Documented temporary choices so Security + Backend teams know what to revisit before Phase 1-3 locking.
 

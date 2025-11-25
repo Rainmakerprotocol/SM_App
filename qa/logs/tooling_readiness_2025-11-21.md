@@ -2,14 +2,15 @@
 
 ## Checklist Snapshot
 
-- [x] Copilot — Installed Android command-line SDK (cmdline-tools r110) under `/workspaces/SM_App/android_sdk` and pulled platform-tools + API 34/36 packages for build parity.
-- [x] Copilot — Accepted all Android SDK licenses and added legacy BuildTools 28.0.3 required by Flutter.
-- [x] Copilot — Pointed Flutter at the new SDK via `/workspaces/SM_App/flutter/bin/flutter config --android-sdk /workspaces/SM_App/android_sdk`.
-- [x] Copilot — Installed Google Chrome Stable 142 via dpkg/apt (see log below) and verified Flutter web target works.
+- [x] antigravity — Installed Android command-line SDK (cmdline-tools r110) under `/workspaces/SM_App/android_sdk` and pulled platform-tools + API 34/36 packages for build parity.
+- [x] antigravity — Accepted all Android SDK licenses and added legacy BuildTools 28.0.3 required by Flutter.
+- [x] antigravity — Pointed Flutter at the new SDK via `/workspaces/SM_App/flutter/bin/flutter config --android-sdk /workspaces/SM_App/android_sdk`.
+- [x] antigravity — Installed Google Chrome Stable 142 via dpkg/apt (see log below) and verified Flutter web target works.
 
 ## Evidence
 
 ### flutter doctor -v (2025-11-22T00:15:44Z)
+
 ```
 [✓] Flutter (Channel stable, 3.39.0-1.0.pre-41, on Ubuntu 24.04.3 LTS 6.8.0-1030-azure, locale C.UTF-8) [92ms]
     • Flutter version 3.39.0-1.0.pre-41 on channel stable at /workspaces/SM_App/flutter
@@ -50,6 +51,7 @@
 ```
 
 ### flutter doctor -v (2025-11-22T00:34:21Z)
+
 ```
 [✓] Flutter (Channel stable, 3.39.0-1.0.pre-41, on Ubuntu 24.04.3 LTS 6.8.0-1030-azure, locale C.UTF-8) [57ms]
     • Flutter version 3.39.0-1.0.pre-41 on channel stable at /workspaces/SM_App/flutter

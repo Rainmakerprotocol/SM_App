@@ -1,6 +1,6 @@
 # API + Sync Trigger Validation — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-1 §4.3 API service layer + Phase 1-2 §4.3 sync triggers
 - **Commands:**
   1. `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test test/widget_test.dart`

@@ -1,6 +1,6 @@
 # Punch Payload Contract Tests — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-2 §5.2 (Build Payload Structure)
 - **Command:** `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`
 - **Result:** Pass (20 tests total, including `test/modules/punch/punch_models_test.dart` payload coverage plus existing sync/transport suites.)

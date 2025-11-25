@@ -1,6 +1,6 @@
 # Jobs Local Schema Tests — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-3 §1.1 (Create Local Table: `jobs_local`)
 - **Command:** `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`
 - **Result:** Pass (34 tests)

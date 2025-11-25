@@ -1,6 +1,6 @@
 # Multiplatform Coverage Plan — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-2 §8.4 (Multiplatform Tests: low-end Android, iPhone SE, battery endurance)
 - **Command:** `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`
 - **Result:** Pass (31 tests)

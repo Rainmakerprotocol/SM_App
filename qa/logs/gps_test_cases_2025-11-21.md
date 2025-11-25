@@ -1,6 +1,6 @@
 # GPS Test Cases — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-2 §8.2 (GPS Test Cases)
 - **Command:** `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`
 - **Result:** Pass (31 tests)

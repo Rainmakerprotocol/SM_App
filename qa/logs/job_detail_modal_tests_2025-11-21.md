@@ -1,6 +1,6 @@
 # Job Detail Modal Tests — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-3 §1.4 (Job Detail Modal)
 - **Command:** `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`
 - **Result:** Pass (39 tests)

@@ -1,6 +1,6 @@
 # Job List UI Tests — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-3 §1.3 (Build Job List Screen)
 - **Command:** `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`
 - **Result:** Pass (38 tests)

@@ -1,6 +1,6 @@
 # Punch Response Handler Tests — 2025-11-21
 
-- **Owner:** Copilot
+- **Owner:** antigravity
 - **Scope:** Phase 1-2 §5.3 (Create Response Handler + UI notification)
 - **Command:** `cd field_app_client && /workspaces/SM_App/flutter/bin/flutter test`
 - **Result:** Pass (21 tests, including new sync feedback cases inside `test/offline/sync_manager_test.dart` and existing transport/storage suites.)

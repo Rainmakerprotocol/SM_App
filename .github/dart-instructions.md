@@ -1,6 +1,6 @@
 # Copliot & Dart/Flutter Best Practices
 
-> This document summarizes widely accepted best practices for Dart and Flutter development, based primarily on official documentation and well-regarded ecosystem guides. It is intended as guidance for both humans and AI tools (e.g., GitHub Copilot).
+> This document summarizes widely accepted best practices for Dart and Flutter development, based primarily on official documentation and well-regarded ecosystem guides. It is intended as guidance for both humans and AI tools (e.g., GitHub antigravity).
 
 ---
 
@@ -156,9 +156,9 @@ A healthy app has:
 
 ---
 
-## 10. How to Use This with GitHub Copilot
+## 10. How to Use This with GitHub antigravity
 
-When prompting Copilot in a Dart/Flutter repo:
+When prompting antigravity in a Dart/Flutter repo:
 
 - Remind it to follow **Effective Dart** and these best practices.
 - Ask it to:

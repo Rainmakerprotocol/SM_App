@@ -1,8 +1,9 @@
 # Storm Master Field App — System Integration Questionnaire
+
 **Document Version:** 1.0  
 **Purpose:** Gather complete information about the existing Laravel backend system to ensure seamless mobile app integration  
 **Prepared For:** Storm Master / Eugene Therrien  
-**Prepared By:** GitHub Copilot  
+**Prepared By:** GitHub antigravity  
 **Date:** November 20, 2025
 
 ---
@@ -10,6 +11,7 @@
 ## 📋 Overview
 
 This questionnaire helps map the **existing Storm Master backend system** to the mobile app requirements outlined in `phased_plan.md`. Complete answers ensure:
+
 - API compatibility
 - Data structure alignment
 - Authentication integration
@@ -21,7 +23,9 @@ This questionnaire helps map the **existing Storm Master backend system** to the
 ## 🔐 Section 1: Authentication & Security
 
 ### 1.1 Authentication Method
+
 **Q:** What authentication system does the Laravel backend currently use?
+
 - [ ] Laravel Sanctum (token-based)
 - [ ] Laravel Passport (OAuth2)
 - [x] JWT (JSON Web Tokens)
@@ -29,17 +33,20 @@ This questionnaire helps map the **existing Storm Master backend system** to the
 - [ ] Other: _______________
 
 **Q:** What is the login endpoint?
+
 ```
 POST /api/login
 ```
 
 **Q:** What credentials are required for login?
+
 - [x] Username + Password *(fallback when email not found)*
 - [x] Email + Password *(primary lookup)*
 - [ ] Employee ID + PIN
 - [ ] Other: _______________
 
 **Q:** What does a successful login response look like?
+
 ```json
 {
   "success": true,
@@ -71,7 +78,9 @@ POST /api/login
 ---
 
 ### 1.2 Token Management
+
 **Q:** How long are authentication tokens valid?
+
 - [ ] 1 hour
 - [ ] 24 hours
 - [ ] 7 days
@@ -80,16 +89,19 @@ POST /api/login
 - [ ] Other: _______________
 
 **Q:** Does the system support token refresh?
+
 - [ ] Yes (provide endpoint: `/api/______________`)
 - [x] No (user must re-login) *(Refresh TTL exists but no refresh endpoint exposed)*
 
 **Q:** How should the mobile app send the token?
+
 - [x] Authorization: Bearer {token}
 - [ ] Cookie
 - [ ] Custom header: _______________
 - [ ] Query parameter (not recommended)
 
 **Q:** What HTTP status code indicates token expiration?
+
 - [x] 401 Unauthorized
 - [ ] 403 Forbidden
 - [ ] 419 Token Expired
@@ -98,7 +110,9 @@ POST /api/login
 ---
 
 ### 1.3 User Roles & Permissions
+
 **Q:** What user roles exist in the system?
+
 - [x] Employee *(type = 5)*
 - [x] Foreman *(type = 4 with optional `foreman_type`)*
 - [x] Manager *(Project Manager, type = 3)*
@@ -106,6 +120,7 @@ POST /api/login
 - [x] Other: Super Admin *(type = 1)*
 
 **Q:** How is the user's role indicated in the API response?
+
 ```json
 {
   "type": 5,            // 1=Super Admin, 2=Admin, 3=PM, 4=Foreman, 5=Employee
@@ -115,6 +130,7 @@ POST /api/login
 ```
 
 **Q:** Do foremen have different API permissions than employees?
+
 - [x] Yes (describe differences: Foremen can view crew assignments/time data via web, but current API still shares the same guarded routes; no granular RBAC yet.)
 - [ ] No (same endpoints for all)
 
@@ -123,13 +139,17 @@ POST /api/login
 ## 🏢 Section 2: Employee & Profile Data
 
 ### 2.1 Employee Profile Endpoint
+
 **Q:** What is the endpoint to fetch an employee's profile?
+
 ```
 GET /api/me  // returns currently authenticated user profile
 ```
+
 *(No `/api/mobile/profile/{id}` yet; new mobile endpoint must wrap existing logic.)*
 
 **Q:** What fields are returned in the profile response?
+
 ```json
 {
   "id": 12,
@@ -158,6 +178,7 @@ GET /api/me  // returns currently authenticated user profile
 ```
 
 **Q:** Which profile fields are editable by the employee?
+
 - [x] Phone
 - [x] Address (address, address_2, city, state, zip)
 - [ ] Emergency contact *(not tracked in current schema)*
@@ -165,17 +186,21 @@ GET /api/me  // returns currently authenticated user profile
 - [x] Other: Company phone
 
 **Q:** What is the endpoint to update profile information?
+
 ```
 PUT /api/employee/{id}   // used today via Angular admin, requires auth + permissions
 ```
+
 *(Employee self-service update endpoint does not exist yet; mobile API will need a dedicated controller.)*
 
 **Q:** Does the system support profile photo uploads?
+
 - [x] Yes (endpoint: `/api/employee/{id}` multipart upload handled server-side)
 - [ ] No
 - [ ] Planned for future
 
 **Q:** If yes, what are the photo requirements?
+
 - Max file size: Not enforced beyond PHP upload limits *(2 MB default)*
 - Accepted formats: [x] JPG [x] PNG [ ] HEIC [ ] Other: _______________
 - Storage location: [ ] S3 [x] Local server [ ] CDN [ ] Other: _______________
@@ -185,13 +210,17 @@ PUT /api/employee/{id}   // used today via Angular admin, requires auth + permis
 ## 🛠️ Section 3: Jobs & Service Data
 
 ### 3.1 Job List Endpoint
+
 **Q:** What is the endpoint to fetch jobs for an employee?
+
 ```
 GET /api/get-all-formatted-job?employee_id={id}&status=&page=1
 ```
+
 *Current web endpoint returns paginated jobs with filters; a purpose-built `/api/mobile/jobs/{employee_id}` does **not** exist yet and must be created for the app.*
 
 **Q:** What does a job object look like?
+
 ```json
 {
   "id": 245,
@@ -223,6 +252,7 @@ GET /api/get-all-formatted-job?employee_id={id}&status=&page=1
 ```
 
 **Q:** How far into the future can employees see their jobs?
+
 - [ ] Today only
 - [ ] Next 7 days
 - [ ] Next 14 days
@@ -230,11 +260,13 @@ GET /api/get-all-formatted-job?employee_id={id}&status=&page=1
 - [ ] Other: _______________
 
 **Q:** Can foremen see jobs assigned to their crew members?
+
 - [x] Yes (same endpoint, filtered by foreman_id via existing query params)
 - [ ] Yes (different endpoint: `/api/______________`)
 - [ ] No
 
 **Q:** What is the date range for foreman job visibility?
+
 - [ ] ±7 days
 - [ ] ±14 days
 - [ ] ±30 days
@@ -243,18 +275,22 @@ GET /api/get-all-formatted-job?employee_id={id}&status=&page=1
 ---
 
 ### 3.2 Services
+
 **Q:** How are "services" defined in the system?
+
 - [x] Predefined list (e.g., roofing, siding, gutters)
 - [ ] Custom per job
 - [x] Pulled from separate endpoint *(job items reference `services` table)*
 - [ ] Other: _______________
 
 **Q:** If services are pulled separately, what is the endpoint?
+
 ```
 GET /api/get-all-services?term={search}
 ```
 
 **Q:** What does a service object look like?
+
 ```json
 {
   "id": 4,
@@ -271,7 +307,9 @@ GET /api/get-all-services?term={search}
 ---
 
 ### 3.3 Crew Information
+
 **Q:** How is crew information structured?
+
 ```json
 {
   "crew": [
@@ -290,6 +328,7 @@ GET /api/get-all-services?term={search}
 ```
 
 **Q:** Can crew assignments change dynamically?
+
 - [x] Yes (crew can be reassigned via admin tools; changes sync to jobs)
 - [ ] No (crew is fixed once assigned)
 - [ ] Foreman can modify crew in the field *(not supported yet; web-only management)*
@@ -299,7 +338,9 @@ GET /api/get-all-services?term={search}
 ## ⏱️ Section 4: Time Punches
 
 ### 4.1 Punch Types
+
 **Q:** What punch types does the system support?
+
 - [x] IN *(cost_code 1=IN, 2=DRIVE, 3=ROOF, 4=SHOP all treated as IN)*
 - [x] OUT *(cost_code 5)*
 - [ ] BREAK_START
@@ -309,6 +350,7 @@ GET /api/get-all-services?term={search}
 - [x] Other: Maintenance (code 6) & Write Mode (code 7) toggles for hardware
 
 **Q:** Does the system differentiate between break types?
+
 - [ ] Yes (paid break vs unpaid lunch)
 - [x] No (all breaks treated the same; drive/shop tracked via cost codes)
 - [ ] Other: _______________
@@ -316,17 +358,22 @@ GET /api/get-all-services?term={search}
 ---
 
 ### 4.2 Punch Submission Endpoint
+
 **Q:** What is the endpoint for submitting punches?
+
 ```
 POST /api/rm-check          // job clock hardware → backend (single punch)
 ```
+
 *(Mobile-specific `POST /api/mobile/punches/batch` is required but not implemented yet.)*
 
 **Q:** Does the endpoint support batch submissions?
+
 - [ ] Yes (multiple punches in one request)
 - [x] No (one punch per request; each RFID tap posts individually)
 
 **Q:** What is the expected punch payload structure?
+
 ```json
 {
   "jobclock_id": "RM-00045",   // physical device id or numeric id
@@ -334,15 +381,18 @@ POST /api/rm-check          // job clock hardware → backend (single punch)
   "timestamp": "2025-11-20 08:30:00"
 }
 ```
+
 *Mobile payload will expand to include `punch_id`, job/service selection, GPS, and source tracking.*
 
 **Q:** What timezone should timestamps use?
+
 - [ ] UTC
 - [x] Device local time *(job clocks send local timestamp string parsed server-side)*
 - [ ] Server timezone: _______________
 - [ ] Other: _______________
 
 **Q:** What is the expected response format?
+
 ```json
 {
   "success": true,
@@ -353,13 +403,16 @@ POST /api/rm-check          // job clock hardware → backend (single punch)
 ---
 
 ### 4.3 Duplicate Punch Handling
+
 **Q:** How does the system detect duplicate punches?
+
 - [ ] By punch_id (UUID from mobile)
 - [x] By timestamp + employee_id + job_id + cost_code *(matching start/end record within same minute)*
 - [ ] By job_id + timestamp + type
 - [x] Other: Rejects if previous start/end already set to same time
 
 **Q:** What happens when a duplicate is detected?
+
 - [ ] Returns 200 with "already_exists" flag
 - [ ] Returns 409 Conflict
 - [ ] Returns 400 Bad Request
@@ -367,6 +420,7 @@ POST /api/rm-check          // job clock hardware → backend (single punch)
 - [x] Other: Returns `{success:false,msg:"This entry is already present"}` (or "Ignoring duplicate punch in <5 minutes")
 
 **Q:** What response indicates a duplicate?
+
 ```json
 {
   "success": false,
@@ -377,18 +431,22 @@ POST /api/rm-check          // job clock hardware → backend (single punch)
 ---
 
 ### 4.4 Punch Validation Rules
+
 **Q:** Does the backend validate punch logic?
+
 - [x] Yes (checks for missing OUT before new IN)
 - [ ] No (mobile app must validate)
 - [x] Partial validation (describe: closes prior open punch if new IN arrives >5 min later or with diff cost code)
 
 **Q:** What happens if an employee tries to punch IN while already clocked in?
+
 - [ ] Returns error: _______________
 - [x] Auto-clocks out previous punch *(updates last open record's end_time before inserting new IN)*
 - [ ] Allows duplicate IN
 - [x] Other: Ignores duplicate if within 5 minutes and same cost code, returning success=true message
 
 **Q:** Are there GPS accuracy requirements?
+
 - [x] No GPS required *(current schema lacks GPS columns; Phase 1 requires ≤80m accuracy flagging)*
 - [ ] GPS required but no accuracy check
 - [ ] GPS accuracy must be ≤ 80m
@@ -396,6 +454,7 @@ POST /api/rm-check          // job clock hardware → backend (single punch)
 - [ ] Other: _______________
 
 **Q:** What happens if GPS data is missing or low accuracy?
+
 - [ ] Punch rejected
 - [ ] Punch flagged for review
 - [ ] Punch accepted with warning
@@ -404,13 +463,16 @@ POST /api/rm-check          // job clock hardware → backend (single punch)
 ---
 
 ### 4.5 Auto-Clockout Rules
+
 **Q:** Does the system auto-clockout employees?
+
 - [ ] Yes (after X hours: _______________)
 - [ ] Yes (at midnight device time)
 - [ ] Yes (at midnight server time)
 - [x] No (manual clockout only; foremen must resolve missed OUTs)
 
 **Q:** If auto-clockout occurs, is the punch flagged?
+
 - [ ] Yes (flagged: "auto_clockout")
 - [ ] No (treated as normal punch)
 - [x] Not applicable (feature not implemented)
@@ -420,13 +482,17 @@ POST /api/rm-check          // job clock hardware → backend (single punch)
 ## 📊 Section 5: Timesheets
 
 ### 5.1 Timesheet Endpoint
+
 **Q:** What is the endpoint to fetch timesheet data?
+
 ```
 GET /api/get-employee-timecards?employee_id={id}&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
 ```
+
 *Used by Angular admin grids; no `/api/mobile/timesheet/week/{employee_id}` yet. Mobile endpoint must aggregate the same repository data for weekly summaries.*
 
 **Q:** What parameters are accepted?
+
 - [x] employee_id (required)
 - [x] start_date (required)
 - [x] end_date (required)
@@ -434,6 +500,7 @@ GET /api/get-employee-timecards?employee_id={id}&start_date=YYYY-MM-DD&end_date=
 - [x] Other: status filters (pending/payroll/paid)
 
 **Q:** What does the timesheet response look like?
+
 ```json
 {
   "success": true,
@@ -465,22 +532,27 @@ GET /api/get-employee-timecards?employee_id={id}&start_date=YYYY-MM-DD&end_date=
 ---
 
 ### 5.2 Timesheet Calculations
+
 **Q:** Are hours calculated on the backend or mobile app?
+
 - [x] Backend calculates (mobile displays only)
 - [ ] Mobile calculates locally
 - [x] Both (mobile for quick view, backend for accuracy) *(mobile may show cached math, but payroll uses backend NA1/NA2 logic)*
 
 **Q:** What is the overtime threshold?
+
 - [x] 40 hours per week *(NA1 option 2)*
 - [x] 8 hours per day *(NA1 option 1; configurable in settings)*
 - [ ] Other: _______________
 
 **Q:** Are breaks automatically deducted?
+
 - [ ] Yes (breaks tracked and deducted)
 - [x] No (gross hours only; breaks need explicit OUT/IN punches or cost codes)
 - [ ] Depends on job/contract
 
 **Q:** Does the system support estimated pay calculations?
+
 - [x] Yes (pay_rate is included in profile and payroll logic already computes `total_pay`)
 - [ ] No (pay info is confidential)
 - [ ] Only for certain roles
@@ -490,13 +562,17 @@ GET /api/get-employee-timecards?employee_id={id}&start_date=YYYY-MM-DD&end_date=
 ## 🚨 Section 6: Dispute System
 
 ### 6.1 Dispute Submission
+
 **Q:** What is the endpoint for submitting disputes?
+
 ```
 POST /api/time-card-dispute
 ```
+
 *(Mobile-friendly `/api/mobile/disputes` endpoint is still pending.)*
 
 **Q:** What does a dispute payload look like?
+
 ```json
 {
   "time_card_id": 8810,
@@ -512,6 +588,7 @@ POST /api/time-card-dispute
 ```
 
 **Q:** What dispute reasons are supported?
+
 - [x] Missing punch
 - [x] Wrong time
 - [x] Wrong job (select correct job_item)
@@ -520,6 +597,7 @@ POST /api/time-card-dispute
 - [x] Other: Pay discrepancy / drive vs roof coding
 
 **Q:** Can employees suggest a corrected timestamp?
+
 - [ ] Yes (required)
 - [x] Yes (optional via `claimed_start/end_time`)
 - [ ] No
@@ -527,13 +605,17 @@ POST /api/time-card-dispute
 ---
 
 ### 6.2 Dispute Status & Comments
+
 **Q:** What is the endpoint to fetch dispute updates?
+
 ```
 GET /api/time-card-dispute?employee_id={id}
 ```
+
 *Comments pulled via `GET /api/get-all-dispute-comment-by-time-card?card_id={id}&is_mgmt={0|1}`. Mobile endpoints TBD.*
 
 **Q:** What statuses can a dispute have?
+
 - [x] pending *(status = 1)*
 - [x] under_review *(treated as status 1 until manager resolves)*
 - [ ] approved
@@ -542,11 +624,13 @@ GET /api/time-card-dispute?employee_id={id}
 - [x] Other: 0 = no dispute (default)
 
 **Q:** Does the system support threaded comments?
+
 - [x] Yes (back-and-forth conversation via `time_card_dispute_comments` with `is_management` flag)
 - [ ] No (single submission only)
 - [ ] Partial (manager can respond once)
 
 **Q:** What does a dispute with comments look like?
+
 ```json
 {
   "time_card_id": 8810,
@@ -569,16 +653,20 @@ GET /api/time-card-dispute?employee_id={id}
 ---
 
 ### 6.3 Foreman Dispute Permissions
+
 **Q:** Can foremen review and respond to disputes?
+
 - [ ] Yes (via mobile app)
 - [x] Yes (via web dashboard only) *(Angular modal allows comments but requires admin permissions)*
 - [ ] No (only managers/admins)
 
 **Q:** Can foremen approve/reject disputes?
+
 - [ ] Yes
 - [x] No (only payroll/admin can change status via `/api/time-card-dispute-status-change`)
 
 **Q:** What is the endpoint for foremen to respond to disputes?
+
 ```
 POST /api/add-time-card-dispute-comment  // requires auth via web app today
 ```
@@ -588,13 +676,17 @@ POST /api/add-time-card-dispute-comment  // requires auth via web app today
 ## 👥 Section 7: Foreman Features
 
 ### 7.1 Crew Monitoring
+
 **Q:** What is the endpoint for foremen to view crew punch status?
+
 ```
 GET /api/crew-members?foreman_id={id}  // current web view to list crew assignments only
 ```
+
 *No endpoint returns live punch status; `/api/mobile/crew/status/{foreman_id}` must be created for Phase 1-3.*
 
 **Q:** What does the crew status response include?
+
 ```json
 {
   "foreman_id": 14,
@@ -613,14 +705,17 @@ GET /api/crew-members?foreman_id={id}  // current web view to list crew assignme
   ]
 }
 ```
+
 *Structure above reflects desired mobile response; existing system cannot provide this yet.*
 
 **Q:** Can foremen see punch history for crew members?
+
 - [x] Yes (full detail via Angular grids; requires desktop access)
 - [ ] Yes (summary only)
 - [ ] No
 
 **Q:** Can foremen see unsynced punches for crew members?
+
 - [ ] Yes
 - [x] No *(unsynced queue does not exist yet; foremen only see records after API save)*
 - [ ] Only their own unsynced punches
@@ -628,7 +723,9 @@ GET /api/crew-members?foreman_id={id}  // current web view to list crew assignme
 ---
 
 ### 7.2 Foreman Job Assignment
+
 **Q:** Can foremen assign crew to jobs via mobile app?
+
 - [ ] Yes (endpoint: `/api/______________`)
 - [x] No (managed via web dashboard today)
 - [x] Planned for Phase 2 *(after mobile app adoption)*
@@ -638,17 +735,21 @@ GET /api/crew-members?foreman_id={id}  // current web view to list crew assignme
 ## 🌐 Section 8: API Technical Details
 
 ### 8.1 Base URL & Versioning
+
 **Q:** What is the base URL for the API?
+
 ```
 Production: https://smeapp.hiero.dev/api
 Local dev: http://localhost/sm-laravel/public/api
 ```
 
 **Q:** Is the API versioned?
+
 - [ ] Yes (e.g., /api/v1/...)
 - [x] No *(single `/api/*` namespace managed by Laravel routes)*
 
 **Q:** What version should the mobile app target?
+
 ```
 /api/* (same routes as web until `/api/mobile/*` segment is added)
 ```
@@ -656,11 +757,14 @@ Local dev: http://localhost/sm-laravel/public/api
 ---
 
 ### 8.2 Rate Limiting
+
 **Q:** Does the API have rate limiting?
+
 - [ ] Yes (limit: _______________ requests per _______________)
 - [x] No *(default Laravel throttle middleware not enabled for JWT group)*
 
 **Q:** What happens when rate limit is exceeded?
+
 - [ ] Returns 429 Too Many Requests
 - [ ] Returns 403 Forbidden
 - [x] Other: Not applicable (no throttling configured)
@@ -668,7 +772,9 @@ Local dev: http://localhost/sm-laravel/public/api
 ---
 
 ### 8.3 Error Response Format
+
 **Q:** What is the standard error response structure?
+
 ```json
 {
   "success": false,
@@ -678,6 +784,7 @@ Local dev: http://localhost/sm-laravel/public/api
 ```
 
 **Q:** What HTTP status codes are used?
+
 - [x] 200 OK
 - [x] 201 Created
 - [x] 400 Bad Request *(validation failures also return 422 sometimes)*
@@ -693,17 +800,21 @@ Local dev: http://localhost/sm-laravel/public/api
 ---
 
 ### 8.4 Data Formats
+
 **Q:** What date/time format does the API use?
+
 - [ ] ISO 8601 (2025-11-20T08:30:00Z)
 - [ ] Unix timestamp (1700472600)
 - [x] Other: `Y-m-d` for dates, `H:i:s` for times, combined `Y-m-d H:i:s` strings (no timezone offset)
 
 **Q:** What numeric format is used for GPS coordinates?
+
 - [x] Decimal degrees (planned `DECIMAL` columns)
 - [ ] Degrees/minutes/seconds
 - [ ] Other: _______________
 
 **Q:** Are there any special data validation rules?
+
 - [x] Phone number format: 10-digit US numbers stored as strings (no formatting enforced)
 - [x] Address format: Free-form text; zip expects 5 digits
 - [x] GPS accuracy units: [x] meters [ ] feet *(planned requirement ≤80m; flag if unavailable)*
@@ -712,18 +823,22 @@ Local dev: http://localhost/sm-laravel/public/api
 ---
 
 ### 8.5 Pagination
+
 **Q:** Do list endpoints support pagination?
+
 - [x] Yes (all list endpoints)
 - [ ] Yes (only for: _______________)
 - [ ] No
 
 **Q:** If yes, what pagination format is used?
+
 - [ ] Limit + offset (`?limit=20&offset=40`)
 - [x] Page + per_page (`?page=2` uses Laravel paginator; `per_page` optional)
 - [ ] Cursor-based
 - [ ] Other: _______________
 
 **Q:** What is the default page size?
+
 - [x] 10 *(Laravel default)*
 - [ ] 20
 - [ ] 50
@@ -735,7 +850,9 @@ Local dev: http://localhost/sm-laravel/public/api
 ## 🔄 Section 9: Data Synchronization
 
 ### 9.1 Sync Strategy
+
 **Q:** Should the mobile app use real-time sync or batch sync?
+
 - [ ] Real-time (immediate API calls)
 - [ ] Batch sync (queue + periodic upload)
 - [x] Hybrid (critical data real-time, bulk data batched)
@@ -743,6 +860,7 @@ Local dev: http://localhost/sm-laravel/public/api
   - Job/timesheet fetches can refresh on demand or scheduled intervals
 
 **Q:** What is the preferred sync interval?
+
 - [ ] Every 1 minute
 - [x] Every 5 minutes *(punch queue flush + data refresh target)*
 - [ ] Every 15 minutes
@@ -750,6 +868,7 @@ Local dev: http://localhost/sm-laravel/public/api
 - [x] Other: Immediate sync when connectivity restored; manual "Sync Now" button allowed
 
 **Q:** Should the app sync on app resume/foreground?
+
 - [x] Yes
 - [ ] No
 - [x] Only if data is stale (> 5 minutes old)
@@ -757,7 +876,9 @@ Local dev: http://localhost/sm-laravel/public/api
 ---
 
 ### 9.2 Conflict Resolution
+
 **Q:** If mobile and server data conflict, which takes precedence?
+
 - [x] Server always wins *(payroll source of truth; disputes handle corrections)*
 - [ ] Client always wins
 - [ ] Most recent timestamp wins
@@ -765,6 +886,7 @@ Local dev: http://localhost/sm-laravel/public/api
 - [ ] Other: _______________
 
 **Q:** How should the mobile app handle partial sync failures?
+
 - [x] Retry failed items only (store failed punch IDs + error)
 - [ ] Retry entire batch
 - [x] Flag failed items for manual review (prompt employee/foreman to fix metadata)
@@ -773,13 +895,16 @@ Local dev: http://localhost/sm-laravel/public/api
 ---
 
 ### 9.3 Data Staleness
+
 **Q:** How often should the app refresh cached data?
+
 - **Jobs:** Every 15 minutes or on manual pull-to-refresh
 - **Profile:** Once per day or when user returns to profile screen
 - **Timesheet:** On demand + auto refresh when viewing new week
 - **Crew status (foreman):** Every 1 minute while screen is active
 
 **Q:** Should the app show stale data warnings?
+
 - [x] Yes (if data is > 1 hour old for jobs/crew, >24h for profile)
 - [ ] No (always show cached data)
 
@@ -788,7 +913,9 @@ Local dev: http://localhost/sm-laravel/public/api
 ## 🧪 Section 10: Testing & Staging
 
 ### 10.1 Test Environment
+
 **Q:** Is there a staging/test API environment?
+
 - [ ] Yes
   - Base URL: `https://____________________________`
   - Test accounts available: [ ] Yes [ ] No
@@ -796,25 +923,30 @@ Local dev: http://localhost/sm-laravel/public/api
   - *Current workflow is to run Laravel + Angular locally using the extracted tar archives.*
 
 **Q:** Are there test employee accounts we can use?
+
 - [x] Yes
   - Employee test account: username: `employee@example.com` password: `password` *(seed data from dump; can reset locally)*
   - Foreman test account: username: `foreman@example.com` password: `password`
 - [ ] No
 
 **Q:** Are there test jobs and punch data available?
+
 - [x] Yes (pre-populated in database seeds and latest SQL dumps)
 - [ ] No (must create test data)
 
 ---
 
 ### 10.2 API Documentation
+
 **Q:** Is there existing API documentation?
+
 - [ ] Yes (Swagger/OpenAPI)
 - [ ] Yes (Postman collection)
 - [ ] Yes (written docs)
 - [x] No (needs to be created)
 
 **Q:** If yes, where can it be accessed?
+
 ```
 URL: N/A – must generate new API contract + Postman collection during Phase 1
 ```
@@ -824,12 +956,15 @@ URL: N/A – must generate new API contract + Postman collection during Phase 1
 ## 📱 Section 11: Mobile-Specific Requirements
 
 ### 11.1 App Store Information
+
 **Q:** What should the app be named?
+
 - Official name: Storm Master Field App
 - Bundle ID (iOS): com.stormmaster.fieldapp *(placeholder – finalize before submission)*
 - Package name (Android): com.stormmaster.fieldapp *(placeholder)*
 
 **Q:** Are there branding assets available?
+
 - [x] Logo (provide: Storm Master Exteriors branding from web site)
 - [x] Color scheme (primary: #C8102E red, secondary: #00263A navy)
 - [x] Fonts (Montserrat per marketing site)
@@ -838,7 +973,9 @@ URL: N/A – must generate new API contract + Postman collection during Phase 1
 ---
 
 ### 11.2 Push Notifications (Future)
+
 **Q:** Will push notifications be needed in Phase 2+?
+
 - [x] Yes (for: dispute updates, punch reminders, job reassignment alerts)
 - [ ] No
 - [ ] Undecided
@@ -846,7 +983,9 @@ URL: N/A – must generate new API contract + Postman collection during Phase 1
 ---
 
 ### 11.3 Background Location (Future)
+
 **Q:** Will background GPS tracking be required?
+
 - [x] Yes (Phase 2+) *(for job verification when app minimized)*
 - [ ] No (foreground only is sufficient)
 - [ ] Undecided
@@ -856,15 +995,18 @@ URL: N/A – must generate new API contract + Postman collection during Phase 1
 ## ✅ Section 12: Sign-Off
 
 **Q:** Who is the technical contact for backend/API questions?
+
 - Name: Eugene Therrien
 - Email: TBD (client to provide preferred address)
 - Availability: Weekdays 9a–5p ET; prefers scheduled working sessions
 
 **Q:** Who has authority to approve API changes?
+
 - Name: Eugene Therrien
 - Role: Owner / Project Sponsor
 
 **Q:** What is the preferred communication channel?
+
 - [x] Email
 - [ ] Slack/Teams
 - [ ] GitHub Issues
@@ -900,5 +1042,5 @@ Use this section for any additional information about the existing system:
 
 **Document Status:** 🟢 Complete  
 **Last Updated:** November 20, 2025  
-**Completed By:** GitHub Copilot  
+**Completed By:** GitHub antigravity  
 **Review Date:** Pending client sign-off

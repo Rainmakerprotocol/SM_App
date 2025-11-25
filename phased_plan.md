@@ -3,7 +3,7 @@
 ## Storm Master Field App — Phase 1-1 Detailed Breakdown
 
 **Document Version:** 1.1
-**Prepared For:** Agentic AI and Copilot
+**Prepared For:** Agentic AI and antigravity
 **Prepared By:** Storm Master / Eugene Therrien
 **Scope:** Phase 1-1 (formerly Week 1) — Detailed Technical Steps
 **Platforms:** Android + iOS
@@ -24,7 +24,7 @@ touching `external/` assets.
 - The **Field App source** will live in a new root-level folder (recommended name: `field_app_client/`). That folder must be initialized as its own repo-ready structure (separate README, `.gitignore`, package manager files) to simplify export and handoff.
 - Whenever this plan references new endpoints, payloads, or sync logic, cross-check the matching specs inside `SM_APP_backend_wiring/` to ensure parity between documentation and implementation.
 - Record every architectural or process decision that affects this plan in `decision_log.md` (ID, date, section, rationale, impact). Each phase below includes prompts on when to add an entry so future contributors can trace why something changed.
-- When `decision_log.md` gains a new entry, update any impacted sections here, in `COPILOT_BUILD_GUIDE.md`, or in the backend wiring folder so all docs stay in sync.
+- When `decision_log.md` gains a new entry, update any impacted sections here, in `antigravity_BUILD_GUIDE.md`, or in the backend wiring folder so all docs stay in sync.
 
 #### 🕰️ Narrative Lens (Past · Present · Future)
 
@@ -95,10 +95,10 @@ These are the micro-steps developers must complete to properly initialize the pr
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Ran `flutter doctor` in the dev container; Linux desktop target is green, but Android SDK/emulator were missing before the new SDK install (see evidence below).
-- [x] Copilot — Installed the Android SDK packages + BuildTools and re-ran `flutter doctor` with evidence logged (`qa/logs/tooling_readiness_2025-11-21.md`).
-- [x] Copilot — Installed Chrome Stable 142 and captured the passing `flutter doctor -v` output in `qa/logs/tooling_readiness_2025-11-21.md`.
-- [ ] Copilot — Provision at least one Android emulator or physical device profile, record OS/API level, and link screenshots/logs in the QA folder.
+- [x] antigravity — Ran `flutter doctor` in the dev container; Linux desktop target is green, but Android SDK/emulator were missing before the new SDK install (see evidence below).
+- [x] antigravity — Installed the Android SDK packages + BuildTools and re-ran `flutter doctor` with evidence logged (`qa/logs/tooling_readiness_2025-11-21.md`).
+- [x] antigravity — Installed Chrome Stable 142 and captured the passing `flutter doctor -v` output in `qa/logs/tooling_readiness_2025-11-21.md`.
+- [ ] antigravity — Provision at least one Android emulator or physical device profile, record OS/API level, and link screenshots/logs in the QA folder.
 
 **Past:** Tooling expectations lived only in tribal knowledge; the plan never enumerated the Flutter platform requirements, so Phase 1-3 work proceeded without ensuring Android/web builds were even possible.
 
@@ -176,8 +176,8 @@ Local Punch → Queue → Retry Loop → API POST Batch → Server Response → 
 
 **Status Checklist (2025-11-22):**
 
-- [x] Copilot — Implemented `SyncManager` + `PunchSyncTransport` under `field_app_client/lib/offline/sync/`, added `offline_status.dart`, and exposed DAO helpers so queue batches carry attempt counts.
-- [x] Copilot — Wrote unit coverage for retry/backoff logic (`field_app_client/test/offline/sync_manager_test.dart`) and documented triggers/backoff flow in the integration spec + `decision_log` (`DL-003`).
+- [x] antigravity — Implemented `SyncManager` + `PunchSyncTransport` under `field_app_client/lib/offline/sync/`, added `offline_status.dart`, and exposed DAO helpers so queue batches carry attempt counts.
+- [x] antigravity — Wrote unit coverage for retry/backoff logic (`field_app_client/test/offline/sync_manager_test.dart`) and documented triggers/backoff flow in the integration spec + `decision_log` (`DL-003`).
 - [ ] Backend Team — Mirror the exponential backoff + duplicate handling rules in Laravel’s `/api/mobile/punches/batch` controller + logging once route scaffolds begin.
 
 **Past:** Queue accessors existed but no engine consumed them, leaving trigger/backoff decisions undocumented.
@@ -200,8 +200,8 @@ Local Punch → Queue → Retry Loop → API POST Batch → Server Response → 
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added secure token persistence (`field_app_client/lib/modules/auth/data/token_storage.dart`) plus metadata-aware auth services/controllers; mock + REST providers share Riverpod DI hooks.
-- [x] Copilot — Unit tests guard session restore + 401 handling (`field_app_client/test/auth_controller_test.dart`).
+- [x] antigravity — Added secure token persistence (`field_app_client/lib/modules/auth/data/token_storage.dart`) plus metadata-aware auth services/controllers; mock + REST providers share Riverpod DI hooks.
+- [x] antigravity — Unit tests guard session restore + 401 handling (`field_app_client/test/auth_controller_test.dart`).
 - [ ] Backend Team — Switch `USE_MOCK_AUTH` off once `/api/mobile/login` ships and update wiring spec with real payload/response IDs.
 
 **Past:** Login UI and Riverpod gate existed but authentication was mock-only with no persisted tokens.
@@ -287,8 +287,8 @@ Add structure:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Built typed REST + mock services for login, jobs, punch, profile, and weekly timesheet APIs with shared Riverpod providers and HTTP client wiring (`field_app_client/lib/api/*.dart`).
-- [x] Copilot — Added parsing/unit coverage (`test/api/job_service_test.dart`, `test/api/timesheet_service_test.dart`) and widget/sync regression guard (`test/widget_test.dart`, `test/offline/sync_manager_test.dart`); evidence logged in `qa/logs/api_sync_layer_tests_2025-11-21.md`.
+- [x] antigravity — Built typed REST + mock services for login, jobs, punch, profile, and weekly timesheet APIs with shared Riverpod providers and HTTP client wiring (`field_app_client/lib/api/*.dart`).
+- [x] antigravity — Added parsing/unit coverage (`test/api/job_service_test.dart`, `test/api/timesheet_service_test.dart`) and widget/sync regression guard (`test/widget_test.dart`, `test/offline/sync_manager_test.dart`); evidence logged in `qa/logs/api_sync_layer_tests_2025-11-21.md`.
 - [ ] Backend Team — Wire these services to live `/api/mobile/*` endpoints once Laravel routes and payload contracts stabilize.
 
 **Past:** UI controllers returned mock data with no shared HTTP client or DI hooks, so features could not call backend contracts outlined in the wiring spec.
@@ -359,7 +359,7 @@ Should include:
 ## Storm Master Field App — Phase 1-2 Detailed Breakdown
 
 **Document Version:** 1.1
-**Prepared For:** Agentic AI and Copilot
+**Prepared For:** Agentic AI and antigravity
 **Prepared By:** Storm Master / Eugene Therrien
 **Scope:** Phase 1-2 (formerly Week 2) — Offline Punching System
 **Platforms:** Android + iOS
@@ -462,8 +462,8 @@ Fields:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Drift schema `PunchesLocal` now persists UUID, GPS, device metadata, and last-error fields with helper queries/streams for pending counts (`field_app_client/lib/offline/database/app_database.dart`).
-- [x] Copilot — DAO helpers expose `pendingCount()` + `watchPendingCount()` so services and UI can inspect unsynced punches without manual SQL (`lib/offline/offline_providers.dart`).
+- [x] antigravity — Drift schema `PunchesLocal` now persists UUID, GPS, device metadata, and last-error fields with helper queries/streams for pending counts (`field_app_client/lib/offline/database/app_database.dart`).
+- [x] antigravity — DAO helpers expose `pendingCount()` + `watchPendingCount()` so services and UI can inspect unsynced punches without manual SQL (`lib/offline/offline_providers.dart`).
 - [ ] Security — AES-at-rest hardening is deferred per `DL-004`; plaintext Drift tables ship now with comments/TODOs so Security can swap in SQLCipher or record-level AES once they weigh in.
 
 **Past:** Table definition existed but no aggregated helpers meant services could not observe pending totals efficiently.
@@ -481,8 +481,8 @@ Fields:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added `PunchDraft` + `PunchRepository` to write punches locally, capture GPS/device metadata, and enqueue matching JSON payloads in `sync_queue` with deterministic UUIDs (`lib/modules/punch/domain/punch_models.dart`, `lib/modules/punch/data/punch_repository.dart`).
-- [x] Copilot — Unit coverage validates insert + enqueue behavior and pending-count streams (`test/modules/punch/punch_repository_test.dart`); evidence logged in `qa/logs/local_punch_storage_tests_2025-11-21.md`.
+- [x] antigravity — Added `PunchDraft` + `PunchRepository` to write punches locally, capture GPS/device metadata, and enqueue matching JSON payloads in `sync_queue` with deterministic UUIDs (`lib/modules/punch/domain/punch_models.dart`, `lib/modules/punch/data/punch_repository.dart`).
+- [x] antigravity — Unit coverage validates insert + enqueue behavior and pending-count streams (`test/modules/punch/punch_repository_test.dart`); evidence logged in `qa/logs/local_punch_storage_tests_2025-11-21.md`.
 - [ ] Backend Team — Validate the interim payload + storage assumptions captured in `DL-004`/`DL-005` and override if Laravel or Security need different fields/encryption semantics.
 
 **Past:** Punch UI buttons were placeholders with no persistence, so offline queue never captured new events.
@@ -499,7 +499,7 @@ Fields:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Hooked `PunchScreen` chip into `pendingPunchCountProvider` so the badge reflects live Drift counts even while data remains mock (`lib/modules/punch/presentation/punch_screen.dart`).
+- [x] antigravity — Hooked `PunchScreen` chip into `pendingPunchCountProvider` so the badge reflects live Drift counts even while data remains mock (`lib/modules/punch/presentation/punch_screen.dart`).
 - [ ] Product — Design updated indicator copy for crew/foreman dashboards plus “oldest pending age” once UX assets are ready.
 
 **Past:** Badge displayed a hard-coded number, masking real queue health.
@@ -547,8 +547,8 @@ Triggers:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Introduced `SyncLifecycleListener` wrapping `FieldApp` to observe app resume/login events, launch a 5-minute timer, and call `SyncManager.trigger()` when the foreground is available (`lib/offline/sync/sync_lifecycle_listener.dart`).
-- [x] Copilot — Added manual sync CTA in `NavigationShell` plus widget test coverage that fakes token storage so onboarding still renders under the new listener; see `qa/logs/api_sync_layer_tests_2025-11-21.md`.
+- [x] antigravity — Introduced `SyncLifecycleListener` wrapping `FieldApp` to observe app resume/login events, launch a 5-minute timer, and call `SyncManager.trigger()` when the foreground is available (`lib/offline/sync/sync_lifecycle_listener.dart`).
+- [x] antigravity — Added manual sync CTA in `NavigationShell` plus widget test coverage that fakes token storage so onboarding still renders under the new listener; see `qa/logs/api_sync_layer_tests_2025-11-21.md`.
 - [ ] Backend Team — Implement platform background fetch/WorkManager tasks and telemetry collection once backend throttling + analytics contracts are ready.
 
 **Past:** SyncManager existed but no lifecycle or UI entry points triggered it, so punch queues remained idle outside of manual test hooks.
@@ -568,7 +568,7 @@ If server returns:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Extended Drift schema with `requiresDispute` flag and error helpers, then taught `SyncManager` + tests to route `invalid_job` / `invalid_timestamp` / `job_mismatch` responses into dispute markers while clearing the sync queue (`lib/offline/database/app_database.dart`, `lib/offline/sync/sync_manager.dart`, `test/offline/sync_manager_test.dart`).
+- [x] antigravity — Extended Drift schema with `requiresDispute` flag and error helpers, then taught `SyncManager` + tests to route `invalid_job` / `invalid_timestamp` / `job_mismatch` responses into dispute markers while clearing the sync queue (`lib/offline/database/app_database.dart`, `lib/offline/sync/sync_manager.dart`, `test/offline/sync_manager_test.dart`).
 - [ ] Backend Team — Confirm final error-code taxonomy + dispute automation expectations in Laravel controller so mobile + backend stay aligned (`SM_APP_backend_wiring/MOBILE_BACKEND_INTEGRATION_SPEC.md`).
 
 **Past:** Sync errors were only retried or dropped, leaving technicians blind about why punches stalled.
@@ -591,7 +591,7 @@ If server returns:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Hardened `RestPunchSyncTransport` with unit coverage that validates the batch envelope (employee/device/app_version/batch_id) plus success/duplicate/error parsing so mobile wiring is ready once backend endpoints exist (`test/offline/sync/punch_sync_transport_test.dart`, evidence in `qa/logs/local_punch_storage_tests_2025-11-21.md`).
+- [x] antigravity — Hardened `RestPunchSyncTransport` with unit coverage that validates the batch envelope (employee/device/app_version/batch_id) plus success/duplicate/error parsing so mobile wiring is ready once backend endpoints exist (`test/offline/sync/punch_sync_transport_test.dart`, evidence in `qa/logs/local_punch_storage_tests_2025-11-21.md`).
 - [ ] Backend Team — Deliver `/api/mobile/punches/batch` controller + Postman samples so mobile tests can flip from mock transport to live Laravel responses.
 
 **Past:** Transport logic existed but lacked regression tests, leaving payload wrappers and error-handling paths unverified.
@@ -627,7 +627,7 @@ Example:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Locked `PunchDraft.toPayload` against the DL-005 contract, added focused coverage in `test/modules/punch/punch_models_test.dart`, and recorded the 20-test run in `qa/logs/punch_payload_contract_tests_2025-11-21.md` so the sample JSON is now code-backed.
+- [x] antigravity — Locked `PunchDraft.toPayload` against the DL-005 contract, added focused coverage in `test/modules/punch/punch_models_test.dart`, and recorded the 20-test run in `qa/logs/punch_payload_contract_tests_2025-11-21.md` so the sample JSON is now code-backed.
 - [ ] Backend Team — Mirror the same field list (including `device_id`, `source`, `gps_unavailable`, `notes`) inside the Laravel batch punch DTO/Postman collection once `/api/mobile/punches/batch` scaffolding begins.
 
 **Past:** Payload requirements only lived in prose, so nullable fields (`service_id`, GPS triplet, `notes`) risked drifting from `PunchDraft` and the backend DTO without automated guards.
@@ -652,7 +652,7 @@ Failure:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Extended `SyncManager` with batch metrics + `sync_feedback.dart`, added snackbars in `NavigationShell`, and covered success/partial/failure cases in `test/offline/sync_manager_test.dart` (see `qa/logs/punch_response_handler_tests_2025-11-21.md`).
+- [x] antigravity — Extended `SyncManager` with batch metrics + `sync_feedback.dart`, added snackbars in `NavigationShell`, and covered success/partial/failure cases in `test/offline/sync_manager_test.dart` (see `qa/logs/punch_response_handler_tests_2025-11-21.md`).
 - [ ] Backend Team — Keep error-code taxonomy/documentation aligned so Laravel responses remain descriptive enough for the new partial-failure banner.
 
 **Past:** Queue + DAO updates already marked duplicates/errors, but UI provided no signal when a batch partially failed, so crews could clock out unaware of unsynced punches.
@@ -673,7 +673,7 @@ Failure:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Wired `connectivity_plus` into `ConnectivityMonitor`, auto-updated `offlineStatusProvider`, auto-triggered sync on reconnect, and added the AppBar badge + last-sync timestamp with unit coverage + QA log `qa/logs/network_state_detection_tests_2025-11-21.md`.
+- [x] antigravity — Wired `connectivity_plus` into `ConnectivityMonitor`, auto-updated `offlineStatusProvider`, auto-triggered sync on reconnect, and added the AppBar badge + last-sync timestamp with unit coverage + QA log `qa/logs/network_state_detection_tests_2025-11-21.md`.
 - [ ] Backend Team — No action until telemetry endpoints land; confirm whether mobile should report connectivity analytics in future phases.
 
 **Past:** Offline status defaulted to “online” with no telemetry, so SyncManager couldn’t auto-resume after a connection drop and the UI lacked a persistent indicator.
@@ -690,7 +690,7 @@ Failure:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added queue-level dedupe in `SyncManager` so only one `mobile_uuid` ships per batch, expanded tests (`test/offline/sync_manager_test.dart`), and logged the run in `qa/logs/duplicate_punch_prevention_tests_2025-11-21.md`.
+- [x] antigravity — Added queue-level dedupe in `SyncManager` so only one `mobile_uuid` ships per batch, expanded tests (`test/offline/sync_manager_test.dart`), and logged the run in `qa/logs/duplicate_punch_prevention_tests_2025-11-21.md`.
 - [ ] Backend Team — Keep `/api/mobile/punches/batch` duplicate responses (`duplicates` array) aligned with DL-005 so mobile + Laravel records stay in sync if the server sees a replay.
 
 **Past:** Drift stored `mobile_uuid` values but the sync loop would still send duplicates if a crash left multiple queue rows for the same punch, relying entirely on the backend to dedupe.
@@ -711,7 +711,7 @@ On app restart:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added `CorruptQueueEntries` (schema v4) plus `AppDatabase.archiveCorruptQueueRow`, taught `SyncQueueDao.fetchPending()` to invoke an `onCorrupt` callback, and introduced `QueueAlertController`/UI snackbar + unsynced banner copy inside `NavigationShell`; documented evidence in `qa/logs/crash_recovery_tests_2025-11-21.md`.
+- [x] antigravity — Added `CorruptQueueEntries` (schema v4) plus `AppDatabase.archiveCorruptQueueRow`, taught `SyncQueueDao.fetchPending()` to invoke an `onCorrupt` callback, and introduced `QueueAlertController`/UI snackbar + unsynced banner copy inside `NavigationShell`; documented evidence in `qa/logs/crash_recovery_tests_2025-11-21.md`.
 - [ ] Backend Team — Define how Laravel support/ops will surface `corrupt_queue_entries` exports (or request them from the device) and mirror the alert language inside `/api/mobile/punches/batch` responses once server-side validation can optionally echo the same warning.
 
 **Past:** Queue corruption (usually bad JSON after crashes) silently removed punches, and the UI offered no clue that data went missing between restarts.
@@ -727,7 +727,7 @@ On app restart:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added `PunchActionThrottleNotifier` + Riverpod provider, wired punch/break/sync buttons to throttle presses, and added snackbar placeholders to confirm input suppression (`lib/modules/punch/presentation/punch_screen.dart`); covered via `test/modules/punch/punch_action_throttle_test.dart` with evidence in `qa/logs/double_tap_prevention_tests_2025-11-21.md`.
+- [x] antigravity — Added `PunchActionThrottleNotifier` + Riverpod provider, wired punch/break/sync buttons to throttle presses, and added snackbar placeholders to confirm input suppression (`lib/modules/punch/presentation/punch_screen.dart`); covered via `test/modules/punch/punch_action_throttle_test.dart` with evidence in `qa/logs/double_tap_prevention_tests_2025-11-21.md`.
 - [ ] Backend/Product — Confirm final UX copy or analytics for repeated taps once live punch actions integrate with repositories.
 
 **Past:** Buttons accepted unlimited taps, creating duplicate punch submissions and inconsistent sync queues during crashes or laggy states.
@@ -746,7 +746,7 @@ On app restart:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added `OfflineWarningBanner` to `NavigationShell` so `offlineStatusProvider` automatically surfaces a persistent warning with icon + copy whenever connectivity drops; covered by `test/modules/navigation/offline_warning_banner_test.dart` with evidence in `qa/logs/offline_banner_tests_2025-11-21.md`.
+- [x] antigravity — Added `OfflineWarningBanner` to `NavigationShell` so `offlineStatusProvider` automatically surfaces a persistent warning with icon + copy whenever connectivity drops; covered by `test/modules/navigation/offline_warning_banner_test.dart` with evidence in `qa/logs/offline_banner_tests_2025-11-21.md`.
 - [ ] Product — Confirm final banner styling/copy once design review occurs and decide whether the banner should persist outside the navigation shell header.
 
 **Past:** Users only saw a small connectivity badge, so offline sessions could be missed when the app stayed on secondary tabs.
@@ -763,7 +763,7 @@ On app restart:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added `GpsQualityIndicator` widget to the Punch screen with ≤20 m green, 20–80 m amber, and >80 m red states plus contextual tooltip guidance; verified via `test/modules/punch/gps_quality_indicator_test.dart` with QA evidence `qa/logs/gps_quality_indicator_tests_2025-11-21.md`.
+- [x] antigravity — Added `GpsQualityIndicator` widget to the Punch screen with ≤20 m green, 20–80 m amber, and >80 m red states plus contextual tooltip guidance; verified via `test/modules/punch/gps_quality_indicator_test.dart` with QA evidence `qa/logs/gps_quality_indicator_tests_2025-11-21.md`.
 - [ ] Product — Confirm final copy/thresholds once GPS specs solidify and determine if indicator should escalate to full-screen warnings when accuracy stays weak.
 
 **Past:** GPS accuracy only showed a plain meter value and icon, leaving field techs guessing whether they needed to move for a better fix.
@@ -779,7 +779,7 @@ On app restart:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Introduced `JobSelectionContext` provider, reminder banner, disabled punch/break/sync buttons until a job/service is selected, and surfaced crew chips + job/service labels on the Punch screen; covered via `test/modules/punch/job_selection_reminder_test.dart` with evidence `qa/logs/job_selection_reminder_tests_2025-11-21.md`.
+- [x] antigravity — Introduced `JobSelectionContext` provider, reminder banner, disabled punch/break/sync buttons until a job/service is selected, and surfaced crew chips + job/service labels on the Punch screen; covered via `test/modules/punch/job_selection_reminder_test.dart` with evidence `qa/logs/job_selection_reminder_tests_2025-11-21.md`.
 - [ ] Product — Finalize reminder copy/CTA and confirm whether foremen need additional roster context (e.g., crew status summaries) before wiring to live job data.
 
 **Past:** The Punch screen defaulted to a placeholder job label without enforcing selection, risking mis-tagged punches when users rushed through the flow.
@@ -801,7 +801,7 @@ On app restart:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Mapped automated coverage for each scenario via `punch_repository_test.dart`, `sync_manager_test.dart`, and `offline_warning_banner_test.dart`; documented results in `qa/logs/offline_punch_scenarios_2025-11-21.md` after running `flutter test` (31 tests).
+- [x] antigravity — Mapped automated coverage for each scenario via `punch_repository_test.dart`, `sync_manager_test.dart`, and `offline_warning_banner_test.dart`; documented results in `qa/logs/offline_punch_scenarios_2025-11-21.md` after running `flutter test` (31 tests).
 - [ ] QA — Execute on-device airplane-mode runs once hardware matrix is online to supplement automated evidence.
 
 **Past:** Offline behavior was planned but lacked documented evidence tying automated tests to the field readiness checklist.
@@ -819,7 +819,7 @@ On app restart:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Documented automated coverage (GpsQualityIndicator widget tests + sync queue samples) per scenario in `qa/logs/gps_test_cases_2025-11-21.md` after running the 31-test Flutter suite.
+- [x] antigravity — Documented automated coverage (GpsQualityIndicator widget tests + sync queue samples) per scenario in `qa/logs/gps_test_cases_2025-11-21.md` after running the 31-test Flutter suite.
 - [ ] QA — Still needs physical device captures (indoor/outdoor/split-site) to supplement automated checks once GPS module is wired to hardware sensors.
 
 **Past:** GPS behavior requirements were listed but lacked concrete evidence linking UI states and queue behavior to the plan’s test matrix.
@@ -837,7 +837,7 @@ On app restart:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Linked `sync_manager_test.dart` suites (large batches, retry/backoff, partial feedback) to the stress requirements and logged evidence in `qa/logs/sync_stress_tests_2025-11-21.md` after the latest 31-test Flutter run.
+- [x] antigravity — Linked `sync_manager_test.dart` suites (large batches, retry/backoff, partial feedback) to the stress requirements and logged evidence in `qa/logs/sync_stress_tests_2025-11-21.md` after the latest 31-test Flutter run.
 - [ ] QA — Still needs hardware-backed mock server runs (Postman/Charles) to confirm behavior under sustained throttling once networking is available.
 
 **Past:** Stress scenarios were described but lacked traceable automated proof.
@@ -854,7 +854,7 @@ On app restart:
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Documented the cross-platform readiness plan (device targets, instrumentation steps, and ties to existing automated suites) in `qa/logs/multiplatform_tests_2025-11-21.md` after re-running the 31-test Flutter suite.
+- [x] antigravity — Documented the cross-platform readiness plan (device targets, instrumentation steps, and ties to existing automated suites) in `qa/logs/multiplatform_tests_2025-11-21.md` after re-running the 31-test Flutter suite.
 - [ ] QA — Run physical device sessions (Moto G Play + iPhone SE) with ADB/Xcode battery logs and attach results to the same QA log + `qa/device_matrix_phase1*.csv` once hardware/provisioning is available.
 
 **Past:** Device targets were listed but lacked actionable steps or evidence linking them to the broader QA matrix.
@@ -885,7 +885,7 @@ On app restart:
 ## Storm Master Field App — Phase 1-3 Detailed Breakdown
 
 **Document Version:** 1.0
-**Prepared For:** Agentic AI and Copilot
+**Prepared For:** Agentic AI and antigravity
 **Prepared By:** Storm Master / Eugene Therrien
 **Scope:** Phase 1-3 (formerly Week 3) — Jobs, Timesheets & Foreman Features
 **Platforms:** Android + iOS
@@ -920,7 +920,7 @@ This document expands **Phase 1-3** into precise, sequential engineering tasks n
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Expanded `AppDatabase` + `JobsDao` with date-window queries, ensured schema + index coverage, and added dedicated tests (`test/offline/database/jobs_local_test.dart`) with QA evidence in `qa/logs/jobs_local_schema_tests_2025-11-21.md` after the full 34-test Flutter run.
+- [x] antigravity — Expanded `AppDatabase` + `JobsDao` with date-window queries, ensured schema + index coverage, and added dedicated tests (`test/offline/database/jobs_local_test.dart`) with QA evidence in `qa/logs/jobs_local_schema_tests_2025-11-21.md` after the full 34-test Flutter run.
 - [ ] QA — Capture on-device SQLite snapshots + adb/xcode logs to prove schema parity once hardware is ready.
 
 **Past:** Jobs were planned conceptually but the local table still mirrored the punch MVP, leaving crew metadata and range queries undefined.
@@ -938,7 +938,7 @@ This document expands **Phase 1-3** into precise, sequential engineering tasks n
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added `JobFeed` DTOs, `RestJobService` + mock provider, job feed state table, and repository refresh logic with hashed crew payloads; verified via `test/modules/jobs/jobs_repository_test.dart` and logged evidence in `qa/logs/job_feed_refresh_tests_2025-11-21.md` after running the 36-test Flutter suite.
+- [x] antigravity — Added `JobFeed` DTOs, `RestJobService` + mock provider, job feed state table, and repository refresh logic with hashed crew payloads; verified via `test/modules/jobs/jobs_repository_test.dart` and logged evidence in `qa/logs/job_feed_refresh_tests_2025-11-21.md` after running the 36-test Flutter suite.
 - [ ] QA — Execute Postman/Charles mock runs + hardware sync drills to capture real API responses, compare `api_version`, and document pagination timing.
 
 **Past:** Jobs API requirements existed only on paper, so no client/provider stored compatibility metadata or refresh timestamps locally.
@@ -957,7 +957,7 @@ This document expands **Phase 1-3** into precise, sequential engineering tasks n
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Implemented `job_list_controller.dart` providers + `JobListScreen` UI consuming cached buckets, crew chips, and feed metadata; added bucketing tests in `test/modules/jobs/job_list_controller_test.dart` with evidence in `qa/logs/job_list_ui_tests_2025-11-21.md` after the 38-test Flutter run.
+- [x] antigravity — Implemented `job_list_controller.dart` providers + `JobListScreen` UI consuming cached buckets, crew chips, and feed metadata; added bucketing tests in `test/modules/jobs/job_list_controller_test.dart` with evidence in `qa/logs/job_list_ui_tests_2025-11-21.md` after the 38-test Flutter run.
 - [ ] QA — Capture device video + screenshots showing pull-to-refresh, section headers, and crew chips once the jobs endpoint is available in staging.
 
 **Past:** The Jobs tab showed hardcoded sample cards, so there was no linkage to the local schema, no refresh path, and no way to prove readiness for Phase 1-3 timelines.
@@ -975,7 +975,7 @@ This document expands **Phase 1-3** into precise, sequential engineering tasks n
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added `JobDetailSheet` + modal plumbing in `field_app_client/lib/modules/jobs/presentation/job_list_screen.dart`, hooked job cards to the sheet, and implemented snackbars/clipboard helpers; verified via `flutter test` (38 cases) with evidence in `qa/logs/job_detail_modal_tests_2025-11-21.md`.
+- [x] antigravity — Added `JobDetailSheet` + modal plumbing in `field_app_client/lib/modules/jobs/presentation/job_list_screen.dart`, hooked job cards to the sheet, and implemented snackbars/clipboard helpers; verified via `flutter test` (38 cases) with evidence in `qa/logs/job_detail_modal_tests_2025-11-21.md`.
 - [ ] QA — Capture on-device modal video showing crew chips, route/call snackbars, and clipboard toast once staging data + OS intent testing is available.
 
 **Past:** Job cards only displayed summary rows, leaving no place for crew rollups, addresses, or quick actions, and the UI could not expose sync timestamps per job.
@@ -993,7 +993,7 @@ This document expands **Phase 1-3** into precise, sequential engineering tasks n
 
 **Status Checklist (2025-11-21):**
 
-- [x] Copilot — Added `foreman_job_controller.dart` aggregating jobs+punches, extended `PunchesDao` with a live stream, and built `ForemanJobsPane` cards (crew chips, alerts, drill-down modal) wired into `job_list_screen.dart`; validated via `flutter test` (41 cases) plus targeted unit coverage in `test/modules/jobs/foreman_job_controller_test.dart` with QA log `qa/logs/foreman_job_view_tests_2025-11-21.md`.
+- [x] antigravity — Added `foreman_job_controller.dart` aggregating jobs+punches, extended `PunchesDao` with a live stream, and built `ForemanJobsPane` cards (crew chips, alerts, drill-down modal) wired into `job_list_screen.dart`; validated via `flutter test` (41 cases) plus targeted unit coverage in `test/modules/jobs/foreman_job_controller_test.dart` with QA log `qa/logs/foreman_job_view_tests_2025-11-21.md`.
 - [ ] QA — Capture device video of the Foreman pane showing unsynced banners, crew info chips, and drill-down modal once staging data + OS intent testing is unblocked.
 
 **Past:** Foremen had no visibility inside the mobile client, so local punch telemetry could not flag off-assignment crew members or pending sync issues before escalation.
@@ -1209,7 +1209,7 @@ Read-only **for employee transparency**.
 ## Storm Master Field App — Phase 1-4 Detailed Breakdown
 
 **Document Version:** 1.0
-**Prepared For:** Agentic AI and Copilot
+**Prepared For:** Agentic AI and antigravity
 **Prepared By:** Storm Master / Eugene Therrien
 **Scope:** Phase 1-4 (formerly Week 4) — Disputes, Profile Management, UI Polish
 **Platforms:** Android + iOS
@@ -1461,7 +1461,7 @@ Fields:
 ## Storm Master Field App — Phase 1-5 Detailed Breakdown
 
 **Document Version:** 1.0
-**Prepared For:** Agentic AI and Copilot
+**Prepared For:** Agentic AI and antigravity
 **Prepared By:** Storm Master / Eugene Therrien
 **Scope:** Phase 1-5 (formerly Week 5) — Testing, Optimization & QA
 **Platforms:** Android + iOS
@@ -1595,7 +1595,7 @@ This phase combines:
 ## Storm Master Field App — Phase 1-6 Detailed Breakdown
 
 **Document Version:** 1.0
-**Prepared For:** Agentic AI and Copilot
+**Prepared For:** Agentic AI and antigravity
 **Prepared By:** Storm Master / Eugene Therrien
 **Scope:** Phase 1-6 (formerly Week 6) — Final Polish, Deployment, and Handoff
 **Platforms:** Android + iOS

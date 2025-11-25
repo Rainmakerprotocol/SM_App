@@ -1,4 +1,4 @@
-# Copilot Instructions
+# antigravity Instructions
 
 ## Big Picture
 
@@ -21,7 +21,7 @@
 
 ## Documentation & QA Alignment
 
-- Treat documentation as code: update `phased_plan.md`, `COPILOT_BUILD_GUIDE.md`, QA templates, and decision log whenever behavior or workflow changes. Note which Past/Present/Future statements you revised.
+- Treat documentation as code: update `phased_plan.md`, `antigravity_BUILD_GUIDE.md`, QA templates, and decision log whenever behavior or workflow changes. Note which Past/Present/Future statements you revised.
 - Testing evidence is mandatory. Store results in `qa/` (device gallery, logs, reports, checklists) and link them from the relevant plan sections so future readers see both narrative and proof.
 - Use `manage_todo_list` to track multi-step work (mirroring phase checklists) so future agents can resume mid-task with full historical context.
 
