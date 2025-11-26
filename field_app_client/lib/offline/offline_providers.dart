@@ -36,6 +36,9 @@ class PunchesDao {
 
   Stream<List<PunchesLocalData>> watchAll() => _db.watchAllPunches();
 
+  Future<List<PunchesLocalData>> getForWindow(String employeeId, DateTime start, DateTime end) =>
+      _db.getPunchesForWindow(employeeId, start, end);
+
   Future<void> markError(
     String punchId, {
     required String errorCode,

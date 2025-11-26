@@ -8,10 +8,13 @@ import '../domain/punch_models.dart';
 
 typedef Clock = DateTime Function();
 
+import 'package:field_app_client/modules/timesheet/domain/timesheet_rebuild_engine.dart';
+
 final punchRepositoryProvider = Provider<PunchRepository>((ref) {
   return PunchRepository(
     punchesDao: ref.watch(punchesDaoProvider),
     syncQueueDao: ref.watch(syncQueueDaoProvider),
+    rebuildEngine: ref.watch(timesheetRebuildEngineProvider),
     clock: () => DateTime.now(),
   );
 });
@@ -30,6 +33,7 @@ class PunchRepository {
   PunchRepository({
     required this.punchesDao,
     required this.syncQueueDao,
+    required this.rebuildEngine,
     required Clock clock,
     Uuid? uuid,
   }) : _clock = clock,
@@ -37,6 +41,7 @@ class PunchRepository {
 
   final PunchesDao punchesDao;
   final SyncQueueDao syncQueueDao;
+  final TimesheetRebuildEngine rebuildEngine;
   final Clock _clock;
   final Uuid _uuid;
 
@@ -72,9 +77,14 @@ class PunchRepository {
     // contract; backend can request additional fields (job item, cost code,
     // etc.) without changing call sites because everything flows through this
     // serialization step.
-    await syncQueueDao.enqueuePunchPayload(
-      mobileUuid: punchId,
       payload: payload,
+    );
+
+    // Trigger timesheet rebuild
+    rebuildEngine.triggerRebuild(
+      employeeId: draft.employeeId,
+      date: draft.timestamp,
+      source: 'punch_recorded',
     );
 
     return punchId;

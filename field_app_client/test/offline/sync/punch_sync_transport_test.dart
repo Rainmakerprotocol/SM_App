@@ -12,6 +12,7 @@ void main() {
     token: 'jwt-token',
     expiresAt: DateTime(2099, 1, 1),
     displayName: 'Tester',
+    employeeId: '12',
   );
 
   PunchPayload payload({String uuid = 'uuid-1'}) {

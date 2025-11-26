@@ -24,6 +24,7 @@ void main() {
     token: 'token',
     expiresAt: DateTime(2099, 1, 1),
     displayName: 'Crew Member',
+    employeeId: '12',
   );
 
   setUpAll(() {
@@ -33,6 +34,7 @@ void main() {
         token: 'fallback',
         expiresAt: DateTime(2099),
         displayName: 'Fallback',
+        employeeId: '12',
       ),
     );
   });

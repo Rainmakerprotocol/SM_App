@@ -48,6 +48,7 @@ class RestAuthService implements AuthService {
     final body = convert.jsonDecode(response.body) as Map<String, dynamic>;
     final token = body['token'] as String?;
     final displayName = body['user']?['name'] as String? ?? 'Crew Member';
+    final employeeId = body['user']?['id']?.toString() ?? '12';
 
     if (token == null) {
       throw AuthException('Malformed login response');
@@ -59,6 +60,7 @@ class RestAuthService implements AuthService {
         token: token,
         displayName: displayName,
         expiresAt: expiresAt,
+        employeeId: employeeId,
       ),
     );
   }
@@ -84,6 +86,7 @@ class MockAuthService implements AuthService {
       token: 'mock-token-${credentials.identity}',
       displayName: credentials.identity,
       expiresAt: DateTime.now().add(const Duration(days: 30)),
+      employeeId: '12',
     );
     return AuthResult(session: session);
   }

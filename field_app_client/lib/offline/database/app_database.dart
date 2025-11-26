@@ -104,6 +104,81 @@ class CorruptQueueEntries extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+class TimesheetLocal extends Table {
+  TextColumn get timesheetId => text()();
+  TextColumn get employeeId => text()();
+  DateTimeColumn get weekStart => dateTime()();
+  DateTimeColumn get weekEnd => dateTime()();
+  DateTimeColumn get date => dateTime()();
+  RealColumn get regularHours => real()();
+  RealColumn get otHours => real()();
+  TextColumn get notes => text().nullable()();
+  RealColumn get weeklyTotalHours => real()();
+  RealColumn get weeklyOt1Hours => real()();
+  RealColumn get estimatedPay => real()();
+  BoolColumn get synced => boolean().withDefault(const Constant(false))();
+  BoolColumn get adjusted => boolean().withDefault(const Constant(false))();
+  BoolColumn get flagged => boolean().withDefault(const Constant(false))();
+  TextColumn get disputeStatus => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {timesheetId};
+}
+
+class SyncStateLocal extends Table {
+  TextColumn get key => text()();
+  DateTimeColumn get lastSyncedAt => dateTime().nullable()();
+  DateTimeColumn get lastRebuildAt => dateTime().nullable()();
+  TextColumn get status => text().withDefault(const Constant('idle'))();
+  TextColumn get lastError => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}
+
+class TimesheetRollupsLocal extends Table {
+  TextColumn get employeeId => text()();
+  DateTimeColumn get weekStart => dateTime()();
+  RealColumn get totalHours => real()();
+  RealColumn get regularHours => real()();
+  RealColumn get otHours => real()();
+  TextColumn get hash => text()();
+  DateTimeColumn get lastCalculatedAt =>
+      dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {employeeId, weekStart};
+}
+
+class MissingJobLinks extends Table {
+  TextColumn get punchId => text()();
+  TextColumn get jobId => text()();
+  DateTimeColumn get detectedAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get fetchAttempts => integer().withDefault(const Constant(0))();
+  DateTimeColumn get lastFetchAttempt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {punchId, jobId};
+}
+
+class TimesheetFlagsLocal extends Table {
+  TextColumn get flagId => text()();
+  TextColumn get punchId => text().nullable()();
+  TextColumn get timesheetId => text().nullable()();
+  TextColumn get employeeId => text()();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get code => text()();
+  TextColumn get message => text()();
+  TextColumn get severity => text()(); // 'warning', 'error', 'critical'
+  BoolColumn get resolved => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {flagId};
+}
+
 @DriftDatabase(
   tables: [
     PunchesLocal,
@@ -112,6 +187,11 @@ class CorruptQueueEntries extends Table {
     ProfileLocal,
     SyncQueue,
     CorruptQueueEntries,
+    TimesheetLocal,
+    SyncStateLocal,
+    TimesheetRollupsLocal,
+    MissingJobLinks,
+    TimesheetFlagsLocal,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -120,7 +200,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -149,6 +229,15 @@ class AppDatabase extends _$AppDatabase {
       if (from < 6) {
         await migrator.createTable(jobFeedStateLocal);
       }
+      if (from < 7) {
+        await migrator.createTable(timesheetLocal);
+      }
+      if (from < 8) {
+        await migrator.createTable(syncStateLocal);
+        await migrator.createTable(timesheetRollupsLocal);
+        await migrator.createTable(missingJobLinks);
+        await migrator.createTable(timesheetFlagsLocal);
+      }
     },
   );
 
@@ -159,6 +248,11 @@ class AppDatabase extends _$AppDatabase {
       batch.deleteAll(jobFeedStateLocal);
       batch.deleteAll(profileLocal);
       batch.deleteAll(syncQueue);
+      batch.deleteAll(timesheetLocal);
+      batch.deleteAll(syncStateLocal);
+      batch.deleteAll(timesheetRollupsLocal);
+      batch.deleteAll(missingJobLinks);
+      batch.deleteAll(timesheetFlagsLocal);
     });
   }
 
@@ -263,6 +357,13 @@ class AppDatabase extends _$AppDatabase {
       requiresDispute: true,
       markSynced: true,
     );
+  }
+
+  Future<List<PunchesLocalData>> getPunchesForWindow(String employeeId, DateTime start, DateTime end) {
+    return (select(punchesLocal)
+      ..where((tbl) => tbl.employeeId.equals(employeeId) & tbl.timestampDevice.isBetweenValues(start, end))
+      ..orderBy([(tbl) => OrderingTerm(expression: tbl.timestampDevice)]))
+      .get();
   }
 
   Future<List<SyncQueueData>> oldestQueueItems({int limit = 20}) {
@@ -392,6 +493,25 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS jobs_local_scheduled_date_idx ON jobs_local (scheduled_date)',
     );
+  }
+
+  // Timesheet Methods
+  Future<void> upsertTimesheet(TimesheetLocalCompanion entry) {
+    return into(timesheetLocal).insertOnConflictUpdate(entry);
+  }
+
+  Future<List<TimesheetLocalData>> getTimesheetsForWeek(String employeeId, DateTime weekStart) {
+    return (select(timesheetLocal)
+      ..where((tbl) => tbl.employeeId.equals(employeeId) & tbl.weekStart.equals(weekStart))
+      ..orderBy([(tbl) => OrderingTerm(expression: tbl.date)]))
+      .get();
+  }
+
+  Stream<List<TimesheetLocalData>> watchTimesheetsForWeek(String employeeId, DateTime weekStart) {
+    return (select(timesheetLocal)
+      ..where((tbl) => tbl.employeeId.equals(employeeId) & tbl.weekStart.equals(weekStart))
+      ..orderBy([(tbl) => OrderingTerm(expression: tbl.date)]))
+      .watch();
   }
 }
 

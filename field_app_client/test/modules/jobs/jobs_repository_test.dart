@@ -20,6 +20,7 @@ void main() {
     token: 'token',
     expiresAt: DateTime(2099, 1, 1),
     displayName: 'Test User',
+    employeeId: '12',
   );
 
   setUp(() {

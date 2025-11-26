@@ -12,6 +12,7 @@ void main() {
     token: 'token',
     expiresAt: DateTime(2099, 1, 1),
     displayName: 'Tester',
+    employeeId: '12',
   );
 
   PunchPayload payload(Map<String, dynamic> data) =>

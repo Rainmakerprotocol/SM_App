@@ -25,6 +25,7 @@ class TestAuthService implements AuthService {
             token: 'token',
             displayName: credentials.identity,
             expiresAt: DateTime.now().add(const Duration(days: 30)),
+            employeeId: '12',
           ),
         );
   }
@@ -97,6 +98,7 @@ void main() {
         token: 'saved-token',
         displayName: 'Jamie',
         expiresAt: DateTime.now().add(const Duration(days: 1)),
+        employeeId: '12',
       );
       await storage.saveSession(session);
 
@@ -118,6 +120,7 @@ void main() {
         token: 'saved-token',
         displayName: 'Jamie',
         expiresAt: DateTime.now().add(const Duration(days: 1)),
+        employeeId: '12',
       );
       await storage.saveSession(session);
 

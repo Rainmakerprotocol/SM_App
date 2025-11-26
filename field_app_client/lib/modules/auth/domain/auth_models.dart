@@ -11,16 +11,19 @@ class AuthSession {
     required this.token,
     required this.expiresAt,
     required this.displayName,
+    required this.employeeId,
   });
 
   final String token;
   final DateTime expiresAt;
   final String displayName;
+  final String employeeId;
 
   Map<String, dynamic> toJson() => {
         'token': token,
         'expiresAt': expiresAt.toIso8601String(),
         'displayName': displayName,
+        'employeeId': employeeId,
       };
 
   factory AuthSession.fromJson(Map<String, dynamic> json) {
@@ -28,6 +31,7 @@ class AuthSession {
       token: json['token'] as String,
       displayName: json['displayName'] as String? ?? 'Crew Member',
       expiresAt: DateTime.parse(json['expiresAt'] as String),
+      employeeId: json['employeeId'] as String? ?? '12',
     );
   }
 

@@ -1119,22 +1119,28 @@ Read-only **for employee transparency**.
 
     #### **4.1 Automatic Rebuild Engine**
 
-    - Trigger engine after punch sync, job sync, device resume, or manual "refresh" gesture from the timesheet screen.
-    - Use a background worker queue so recalculations never block UI threads; persist the last rebuild timestamp in `sync_state_local`.
-    - Recompute daily, weekly, and crew totals and write summaries into `timesheet_rollups_local` to avoid recalculating on every render.
-    - Compare rollup hashes with backend `/api/mobile/timesheet/week` responses for validation, logging any drift to `qa/rollup_drift.log`.
+    - [x] Trigger engine after punch sync, job sync, device resume, or manual "refresh" gesture from the timesheet screen.
+    - [x] Use a background worker queue so recalculations never block UI threads; persist the last rebuild timestamp in `sync_state_local`.
+    - [x] Recompute daily, weekly, and crew totals and write summaries into `timesheet_rollups_local` to avoid recalculating on every render.
+    - [ ] Compare rollup hashes with backend `/api/mobile/timesheet/week` responses for validation, logging any drift to `qa/rollup_drift.log`.
 
     #### **4.2 Punch–Job Linking Guardrails**
 
-    - When a punch references a job not cached locally, enqueue a high-priority fetch for that job ID before persisting the punch to ensure detail screens have metadata.
-    - Maintain a `missing_job_links` table to prevent repeated fetches and to show a placeholder badge if metadata still unavailable offline.
-    - Use the integration spec in `SM_APP_backend_wiring/MOBILE_BACKEND_INTEGRATION_SPEC.md` to keep payload mappings consistent.
+    - [x] When a punch references a job not cached locally, enqueue a high-priority fetch for that job ID before persisting the punch to ensure detail screens have metadata.
+    - [x] Maintain a `missing_job_links` table to prevent repeated fetches and to show a placeholder badge if metadata still unavailable offline.
+    - [x] Use the integration spec in `SM_APP_backend_wiring/MOBILE_BACKEND_INTEGRATION_SPEC.md` to keep payload mappings consistent.
 
     #### **4.3 Timesheet Error Flags & Notifications**
 
-    - Flag entries for missing OUT punch, excessive break, auto-clockout, GPS accuracy >80m, and overlapping jobs; store flags in `timesheet_flags_local` with severity levels.
-    - Surface flags inline plus in a "Needs Attention" list on the dashboard so employees see issues early.
-    - For foremen, aggregate flagged punches per crew and push summaries into the crew view so conversations can happen before disputes are filed.
+    - [x] Flag entries for missing OUT punch, excessive break, auto-clockout, GPS accuracy >80m, and overlapping jobs; store flags in `timesheet_flags_local` with severity levels.
+    - [x] Surface flags inline plus in a "Needs Attention" list on the dashboard so employees see issues early.
+    - [ ] For foremen, aggregate flagged punches per crew and push summaries into the crew view so conversations can happen before disputes are filed.
+
+    **Status Checklist (2025-11-26):**
+
+    - [x] antigravity — Implemented `TimesheetRebuildEngine`, `TimesheetValidator`, and new DB tables (`SyncStateLocal`, `TimesheetRollupsLocal`, `MissingJobLinks`, `TimesheetFlagsLocal`).
+    - [x] antigravity — Verified via unit tests (`timesheet_rebuild_engine_test.dart`, `timesheet_validator_test.dart`) and manual verification.
+    - [ ] Backend Team — Implement backend endpoints for rollup hash comparison and flag aggregation.
 
 ---
 
