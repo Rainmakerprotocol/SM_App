@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../services/gps_providers.dart';
 import '../data/punch_repository.dart';
 import 'job_selection_context.dart';
 import 'punch_action_throttle.dart';
@@ -11,13 +12,21 @@ final punchStatusProvider = Provider<PunchStatus>((ref) {
     data: (value) => value,
     orElse: () => PendingPunchStats.empty,
   );
+  
+  // Get real GPS data from stream
+  final gpsAsync = ref.watch(gpsStreamProvider);
+  final gpsAccuracy = gpsAsync.maybeWhen(
+    data: (coord) => coord.accuracy.toInt(),
+    orElse: () => 0, // 0 indicates GPS unavailable
+  );
+  
   return PunchStatus(
     isClockedIn: true,
     activeJob: 'SM-2401 · Storm Inspection',
     since: '2h 14m',
     pendingSync: stats.count,
     oldestPendingAge: stats.oldestAge(),
-    gpsAccuracy: 12,
+    gpsAccuracy: gpsAccuracy,
   );
 });
 

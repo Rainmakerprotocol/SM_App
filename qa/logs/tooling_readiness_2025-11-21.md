@@ -91,3 +91,47 @@
 
 • No issues found!
 ```
+
+### flutter doctor -v (2025-11-25T20:10:00Z - AI Server)
+
+```
+[!] Flutter (Channel stable, 3.24.3, on Ubuntu 24.04.3 LTS 6.14.0-35-generic, locale en_US.UTF-8)
+    • Flutter version 3.24.3 on channel stable at /home/founder/sm_field_app/SM_App/flutter
+    ! The flutter binary is not on your path.
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision 2663184aa7 (1 year, 2 months ago), 2024-09-11 16:27:48 -0500
+    • Engine revision 36335019a8
+    • Dart version 3.5.3
+    • DevTools version 2.37.3
+
+[✗] Android toolchain - develop for Android devices
+    ✗ Unable to locate Android SDK.
+
+[✓] Chrome - develop for the web
+    • Chrome at google-chrome
+
+[✓] Linux toolchain - develop for Linux desktop
+    • Ubuntu clang version 18.1.3 (1ubuntu1)
+    • cmake version 3.28.3
+    • ninja version 1.11.1
+    • pkg-config version 1.8.1
+
+[✓] VS Code (version 1.106.2)
+    • VS Code at /snap/code/current/usr/share/code
+
+[✓] Connected device (2 available)
+    • Linux (desktop) • linux  • linux-x64      • Ubuntu 24.04.3 LTS 6.14.0-35-generic
+    • Chrome (web)    • chrome • web-javascript • Google Chrome 141.0.7390.122
+
+[✓] Network resources
+    • All expected network resources are available.
+
+! Doctor found issues in 3 categories.
+```
+
+**Environment Migration Note**: Migrated from Codespaces (`/workspaces/SM_App/`) to AI Server (`/home/founder/sm_field_app/SM_App/`). Linux toolchain dependencies (clang, libgtk-3-dev, mesa-utils) reinstalled successfully on 2025-11-25.
+
+**Android SDK Status**: Not configured on AI Server. Can be deferred until device testing is required.
+
+**Linux Desktop Target**: ✅ READY - All dependencies installed and verified.
+**Web Target**: ✅ READY - Chrome installed and recognized.
